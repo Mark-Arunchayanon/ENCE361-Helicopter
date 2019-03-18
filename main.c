@@ -113,7 +113,7 @@ initADC (void)
     ADCSequenceConfigure(ADC0_BASE, 3, ADC_TRIGGER_PROCESSOR, 0);
   
     //
-    // Configure step 0 on sequence 3.  Sample channel 0 (ADC_CTL_CH0) in
+    // Configure step 0 on sequence 3.  Sample channel 9 (ADC_CTL_CH9) in
     // single-ended mode (default) and configure the interrupt flag
     // (ADC_CTL_IE) to be set when the sample is done.  Tell the ADC logic
     // that this is the last conversion on sequence 3 (ADC_CTL_END).  Sequence
@@ -154,7 +154,7 @@ displayMeanVal(uint16_t meanVal, uint32_t count)
 {
 	char string[17];  // 16 characters across the display
 
-    OLEDStringDraw ("ADC demo 1", 0, 0);
+    OLEDStringDraw ("Milestone 1", 0, 0);
 	
     // Form a new string for the line.  The maximum width specified for the
     //  number field ensures it is displayed right justified.
@@ -189,7 +189,7 @@ main(void)
 	int32_t sum;
 	int32_t ADC_Altitude;
 	int32_t Percent_Altitude;
-	char DisplayString[MAX_STR_LEN + 1];
+	//char DisplayString[MAX_STR_LEN + 1];
 
 	initClock ();
 	initADC ();
@@ -210,8 +210,8 @@ main(void)
 			sum = sum + readCircBuf (&g_inBuffer);
 		}
 		ADC_Altitude = ((2 * sum + BUF_SIZE) / 2 / BUF_SIZE);
-		Percent_Altitude = (ADC_Altitude - g_ADC_GROUND)/(HEIGHT_MAX -g_ADC_GROUND);
-		displayMeanVal (Percent_Altitude, g_ulSampCnt);
+//		Percent_Altitude = (ADC_Altitude - g_ADC_GROUND)/(HEIGHT_MAX -g_ADC_GROUND);
+		displayMeanVal (ADC_Altitude, g_ulSampCnt);
 		SysCtlDelay (SysCtlClockGet() / 12);  // Update display at ~ 4 Hz
 	}
 }
