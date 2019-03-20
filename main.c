@@ -29,16 +29,18 @@
 //*****************************************************************************
 #define BUF_SIZE 10
 #define SAMPLE_RATE_HZ 40
-#define HEIGHT_MAX 4095
 #define MAX_STR_LEN 16
 #define UART_USB_BASE           UART0_BASE
+#define CHANGE 0.8
+
 
 //*****************************************************************************
 // Global variables
 //*****************************************************************************
 static circBuf_t g_inBuffer;		// Buffer of size BUF_SIZE integers (sample values)
 static uint32_t g_ulSampCnt;	// Counter for the interrupts
-static uint32_t g_ADC_GROUND;
+
+
 
 //*****************************************************************************
 //
@@ -158,60 +160,59 @@ displayMeanVal(uint16_t meanVal, uint32_t count)
 	
     // Form a new string for the line.  The maximum width specified for the
     //  number field ensures it is displayed right justified.
-    usnprintf (string, sizeof(string), "Mean ADC = %4d", meanVal);
+    usnprintf (string, sizeof(string), "Height = %4d", meanVal);
     // Update line on display.
     OLEDStringDraw (string, 0, 1);
 
-    usnprintf (string, sizeof(string), "Sample # %5d", count);
+    usnprintf (string, sizeof(string), "ADC Value %4d", count);
     OLEDStringDraw (string, 0, 3);
 }
 
 
-void
-initHeliHeight(void)
-{
-    int i = 0;
-    int sum = 0;
-            for (i = 0; i < BUF_SIZE; i++) {
-                sum = sum + readCircBuf (&g_inBuffer);
-            // Calculate and display the rounded mean of the buffer contents
-            }
-            displayMeanVal ((2 * sum + BUF_SIZE) / 2 / BUF_SIZE, g_ulSampCnt);
-    g_ADC_GROUND = (2 * sum + BUF_SIZE) / 2 / BUF_SIZE;
-
-}
-
-
-int
-main(void)
+int main(void)
 {
 	uint16_t i;
 	int32_t sum;
+	int32_t minHeight, maxHeight;
 	int32_t ADC_Altitude;
-	int32_t Percent_Altitude;
+	double percent = 0, change, original;
 	//char DisplayString[MAX_STR_LEN + 1];
+	bool firstRun = true;
 
 	initClock ();
 	initADC ();
 	initDisplay ();
 	initCircBuf (&g_inBuffer, BUF_SIZE);
-	initHeliHeight();
+
     //
     // Enable interrupts to the processor.
     IntMasterEnable();
 
 	while (1)
 	{
+	    sum = 0; //makes sure that the m
 		//
 		// Background task: calculate the (approximate) mean of the values in the
 		// circular buffer and display it, together with the sample number.
-		sum = 0;
+
 		for (i = 0; i < BUF_SIZE; i++) {
 			sum = sum + readCircBuf (&g_inBuffer);
 		}
 		ADC_Altitude = ((2 * sum + BUF_SIZE) / 2 / BUF_SIZE);
-//		Percent_Altitude = (ADC_Altitude - g_ADC_GROUND)/(HEIGHT_MAX -g_ADC_GROUND);
-		displayMeanVal (ADC_Altitude, g_ulSampCnt);
+
+		if(firstRun) {
+		    maxHeight = ADC_Altitude-1275.4*CHANGE-36.757;
+		    minHeight = ADC_Altitude;
+		    original = abs(maxHeight-minHeight);
+		    if(minHeight > 0){
+		        firstRun = false;
+		    }
+		} else{
+		    change = abs(ADC_Altitude - minHeight);
+		    percent = change/original*100;
+		}
+
+		displayMeanVal (percent, ADC_Altitude);
 		SysCtlDelay (SysCtlClockGet() / 12);  // Update display at ~ 4 Hz
 	}
 }
