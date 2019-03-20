@@ -23,6 +23,7 @@
 #include "utils/ustdlib.h"
 #include "circBufT.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
 
 //*****************************************************************************
 // Constants
@@ -32,7 +33,7 @@
 #define MAX_STR_LEN 16
 #define UART_USB_BASE           UART0_BASE
 #define CHANGE 0.8
-
+#define SYSTICK_RATE_HZ    100
 
 //*****************************************************************************
 // Global variables
@@ -55,7 +56,25 @@ SysTickIntHandler(void)
     //
     ADCProcessorTrigger(ADC0_BASE, 3); 
     g_ulSampCnt++;
+    updateButtons();
 }
+
+void
+initSysTick (void)
+{
+    //
+    // Set up the period for the SysTick timer.  The SysTick
+    // timer period is set as a function of the system clock.
+    SysTickPeriodSet (SysCtlClockGet() / SYSTICK_RATE_HZ);
+    //
+    // Register the interrupt handler
+    SysTickIntRegister (SysTickIntHandler);
+    //
+    // Enable interrupt and device
+    SysTickIntEnable ();
+    SysTickEnable ();
+}
+
 
 //*****************************************************************************
 //
@@ -160,7 +179,7 @@ displayMeanVal(uint16_t meanVal, uint32_t count)
 	
     // Form a new string for the line.  The maximum width specified for the
     //  number field ensures it is displayed right justified.
-    usnprintf (string, sizeof(string), "Height = %4d", meanVal);
+    usnprintf (string, sizeof(string), "Height = %4d%%", meanVal);
     // Update line on display.
     OLEDStringDraw (string, 0, 1);
 
@@ -179,8 +198,15 @@ int main(void)
 	//char DisplayString[MAX_STR_LEN + 1];
 	bool firstRun = true;
 
+	SysCtlPeripheralReset (LEFT_BUT_PERIPH);//setting up the LEFT button GPIO
+	SysCtlPeripheralReset (UP_BUT_PERIPH);//setting the UP button GPIO
+
 	initClock ();
 	initADC ();
+
+	initButtons ();
+	initSysTick ();
+
 	initDisplay ();
 	initCircBuf (&g_inBuffer, BUF_SIZE);
 
@@ -203,12 +229,16 @@ int main(void)
 		if(firstRun) {
 		    maxHeight = ADC_Altitude-1275.4*CHANGE-36.757;
 		    minHeight = ADC_Altitude;
-		    original = abs(maxHeight-minHeight);
+		    original = maxHeight-minHeight;
 		    if(minHeight > 0){
 		        firstRun = false;
 		    }
 		} else{
-		    change = abs(ADC_Altitude - minHeight);
+		    if(checkButton(LEFT) == PUSHED){
+		        minHeight = ADC_Altitude;
+		        original = maxHeight-minHeight;
+		    }
+		    change = ADC_Altitude - minHeight;
 		    percent = change/original*100;
 		}
 
