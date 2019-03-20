@@ -171,7 +171,7 @@ initDisplay (void)
 //
 //*****************************************************************************
 void
-displayMeanVal(uint16_t meanVal, uint32_t count)
+displayMeanVal(uint16_t meanVal, bool percent)
 {
 	char string[17];  // 16 characters across the display
 
@@ -179,18 +179,21 @@ displayMeanVal(uint16_t meanVal, uint32_t count)
 	
     // Form a new string for the line.  The maximum width specified for the
     //  number field ensures it is displayed right justified.
-    usnprintf (string, sizeof(string), "Height = %4d%%", meanVal);
+    if(percent){
+        usnprintf (string, sizeof(string), "Height = %4d%%", meanVal);
+    } else {
+        usnprintf (string, sizeof(string), "ADC Value = %4d", meanVal);
+    }
     // Update line on display.
     OLEDStringDraw (string, 0, 1);
-
-    usnprintf (string, sizeof(string), "ADC Value %4d", count);
-    OLEDStringDraw (string, 0, 3);
 }
 
 
 int main(void)
 {
-	uint16_t i;
+	uint16_t i, level;
+	uint16_t count = 0;
+
 	int32_t sum;
 	int32_t minHeight, maxHeight;
 	int32_t ADC_Altitude;
@@ -237,12 +240,23 @@ int main(void)
 		    if(checkButton(LEFT) == PUSHED){
 		        minHeight = ADC_Altitude;
 		        original = maxHeight-minHeight;
+		    } if(checkButton(UP) == PUSHED){
+		        count++;
 		    }
 		    change = ADC_Altitude - minHeight;
 		    percent = change/original*100;
 		}
+		switch(count%3) {
+            case 0:
+                displayMeanVal (percent, true);
+                break;
+            case 1:
+                displayMeanVal(ADC_Altitude, false);
+                break;
+            case 2:
+                OrbitOledClear();
+		}
 
-		displayMeanVal (percent, ADC_Altitude);
 		SysCtlDelay (SysCtlClockGet() / 12);  // Update display at ~ 4 Hz
 	}
 }
