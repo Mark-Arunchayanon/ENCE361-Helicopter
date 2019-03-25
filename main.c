@@ -34,6 +34,7 @@
 #define UART_USB_BASE           UART0_BASE
 #define CHANGE 0.8
 #define SYSTICK_RATE_HZ    100
+#define range_value 800*4095/3300
 
 //*****************************************************************************
 // Global variables
@@ -171,7 +172,7 @@ initDisplay (void)
 //
 //*****************************************************************************
 void
-displayMeanVal(uint16_t meanVal, bool percent)
+displayMeanVal(int16_t meanVal, bool percent)
 {
 	char string[17];  // 16 characters across the display
 
@@ -191,13 +192,13 @@ displayMeanVal(uint16_t meanVal, bool percent)
 
 int main(void)
 {
-	uint16_t i, level;
+	uint16_t i;
 	uint16_t count = 0;
 
 	int32_t sum;
-	int32_t minHeight, maxHeight;
+	int32_t minHeight;
 	int32_t ADC_Altitude;
-	double percent = 0, change, original;
+	int percent = 0, change, original;
 	//char DisplayString[MAX_STR_LEN + 1];
 	bool firstRun = true;
 
@@ -230,21 +231,21 @@ int main(void)
 		ADC_Altitude = ((2 * sum + BUF_SIZE) / 2 / BUF_SIZE);
 
 		if(firstRun) {
-		    maxHeight = ADC_Altitude-1275.4*CHANGE-36.757;
+		    //maxHeight = ADC_Altitude - range_value;
 		    minHeight = ADC_Altitude;
-		    original = maxHeight-minHeight;
+		    //original = maxHeight-minHeight;
 		    if(minHeight > 0){
 		        firstRun = false;
 		    }
 		} else{
 		    if(checkButton(LEFT) == PUSHED){
 		        minHeight = ADC_Altitude;
-		        original = maxHeight-minHeight;
+		        //original = maxHeight-minHeight;
 		    } if(checkButton(UP) == PUSHED){
 		        count++;
 		    }
-		    change = ADC_Altitude - minHeight;
-		    percent = change/original*100;
+		    change =  minHeight-ADC_Altitude;
+		    percent = 100*change/range_value;
 		}
 		switch(count%3) {
             case 0:
