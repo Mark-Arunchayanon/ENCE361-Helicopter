@@ -1,9 +1,11 @@
 //*****************************************************************************
 //
-// ADCdemo1.c - Simple interrupt driven program which samples with AIN0
+// Milestone 1 - Displaying helicopter altitude as a percentage
 //
-// Author:  P.J. Bones	UCECE
-// Last modified:	8.2.2018
+// Author:  N. James
+//          L. Trenberth
+//          M. Arunchayanon
+// Last modified:	26.3.2019
 //
 //*****************************************************************************
 // Based on the 'convert' series from 2016
@@ -159,10 +161,15 @@ initADC (void)
     ADCIntEnable(ADC0_BASE, 3);
 }
 
+//*****************************************************************************
+//
+// Initialise Display
+//
+//*****************************************************************************
 void
 initDisplay (void)
 {
-    // intialise the Orbit OLED display
+    // initialise the Orbit OLED display
     OLEDInitialise ();
 }
 
@@ -189,22 +196,30 @@ displayMeanVal(int16_t meanVal, bool percent)
     OLEDStringDraw (string, 0, 1);
 }
 
-
+//*****************************************************************************
+//
+// Main function - Declare variables, initialise functions.
+//               - Constantly fills buffer and calculates mean samples and Altitude percentage
+//               - Change the display on OLED screen between displaying altitude, raw ADC value and turning screen off
+//               - Update display every 4Hz
+//
+//*****************************************************************************
 int main(void)
 {
-	uint16_t i;
-	uint16_t count = 0;
-
-	int32_t sum;
-	int32_t minHeight;
-	int32_t ADC_Altitude;
-	int percent = 0, change, original;
-	//char DisplayString[MAX_STR_LEN + 1];
-	bool firstRun = true;
+    // Declaring Variables
+	uint16_t count = 0;     // Used as a case trigger
+	int32_t sum;            // Sum of samples in buffer
+	int32_t minHeight;      // Reference height (0%)
+	int32_t ADC_Altitude;   // Altitude of helicopter (0-4095)
+	int percent = 0;        // Stores the calculated percentage of altitude
+	int change;             // Change in Altitude (minHeight - ADC_Altitude)
+	int i;
+	bool firstRun = true;   // Used as a flag to say that initial height has been calibrated
 
 	SysCtlPeripheralReset (LEFT_BUT_PERIPH);//setting up the LEFT button GPIO
 	SysCtlPeripheralReset (UP_BUT_PERIPH);//setting the UP button GPIO
 
+	//Initialisation
 	initClock ();
 	initADC ();
 
@@ -220,41 +235,37 @@ int main(void)
 
 	while (1)
 	{
-	    sum = 0; //makes sure that the m
-		//
+	    sum = 0;    // Resets the sum to 0 before summing another buffer load
+
 		// Background task: calculate the (approximate) mean of the values in the
 		// circular buffer and display it, together with the sample number.
-
 		for (i = 0; i < BUF_SIZE; i++) {
 			sum = sum + readCircBuf (&g_inBuffer);
 		}
-		ADC_Altitude = ((2 * sum + BUF_SIZE) / 2 / BUF_SIZE);
+		ADC_Altitude = ((2 * sum + BUF_SIZE) / 2 / BUF_SIZE);   // Calculates the mean from 10 samples
 
-		if(firstRun) {
-		    //maxHeight = ADC_Altitude - range_value;
+		if(firstRun) {      // Sets the initial Height as the minHeight
 		    minHeight = ADC_Altitude;
-		    //original = maxHeight-minHeight;
 		    if(minHeight > 0){
 		        firstRun = false;
 		    }
 		} else{
-		    if(checkButton(LEFT) == PUSHED){
+		    if(checkButton(LEFT) == PUSHED){        // If left button pushed, set the current Height as the minHeight
 		        minHeight = ADC_Altitude;
-		        //original = maxHeight-minHeight;
-		    } if(checkButton(UP) == PUSHED){
-		        count++;
+		    } if(checkButton(UP) == PUSHED){        // If up button pushed, increment count
+		        count++;                            // Count goes from 0 to 3 and resets back to 0
 		    }
-		    change =  minHeight-ADC_Altitude;
-		    percent = 100*change/range_value;
+		    change =  minHeight-ADC_Altitude;       // Calculate the change in height
+		    percent = 100*change/range_value;       // Calculate the altitude percentage
 		}
 		switch(count%3) {
-            case 0:
+            case 0:         // If count is changed to 0, display the Altitude in percentage
                 displayMeanVal (percent, true);
                 break;
-            case 1:
+            case 1:         // If count is changed to 1, display the raw ADC value
                 displayMeanVal(ADC_Altitude, false);
                 break;
-            case 2:
+            case 2:         // If count is changed to 2, turn off display
                 OrbitOledClear();
 		}
 
