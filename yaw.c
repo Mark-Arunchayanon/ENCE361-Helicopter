@@ -50,9 +50,9 @@ void YawIntHandler (void) {
     phaseA = GPIOPinRead(GPIO_PORTB_BASE, GPIO_PIN_0);
     phaseB = GPIOPinRead(GPIO_PORTB_BASE, GPIO_PIN_1);
     if (phaseB == 2 && phaseA == 0) { //Rotating Clockwise
-        slot++;
-    } else if (phaseB == 0) { //Rotating Anti-clockwise
         slot--;
+    } else if (phaseB == 0) { //Rotating Anti-clockwise
+        slot++;
     }
     GPIOIntClear(GPIO_PORTB_BASE, GPIO_INT_PIN_0 | GPIO_INT_PIN_1);
 }
