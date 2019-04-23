@@ -10,10 +10,10 @@
 //*****************************************************************************
 // Based on the 'convert' series from 2016
 //*****************************************************************************
-
 #include "system.h"
 #include "altitude.h"
 #include "display.h"
+#include "yaw.h"
 
 
 //*****************************************************************************
@@ -24,30 +24,29 @@
 //               - Update display every 4Hz
 //
 //*****************************************************************************
+
+//*****************************************************************************
+//  initAll: Initialises all important functions
+void initAll (void) {
+    initButtonCheck();
+    initClock ();
+    initADC ();
+    initYaw();
+    initButtons ();
+    initSysTick ();
+    initDisplay ();
+    initCircBuf (bufferLocation(), BUF_SIZE);
+    IntMasterEnable(); // Enable interrupts to the processor.
+    SysCtlDelay (SysCtlClockGet() / 12);
+    resetAltitude();
+}
+
 int main(void)
 {
-	SysCtlPeripheralReset (LEFT_BUT_PERIPH);//setting up the LEFT button GPIO
-	SysCtlPeripheralReset (UP_BUT_PERIPH);//setting the UP button GPIO
-
-	//Initialisation
-	initClock ();
-	initADC ();
-
-	initButtons ();
-	initSysTick ();
-
-	initDisplay ();
-	initCircBuf (bufferLocation(), BUF_SIZE);
-    //
-    // Enable interrupts to the processor.
-    IntMasterEnable();
-    SysCtlDelay (SysCtlClockGet() / 12);  // Update display at ~ 4 Hz
-    resetAltitude();
-
+	initAll();
 	while (1)
 	{
         OutputToDisplay();
-
 	}
 }
 

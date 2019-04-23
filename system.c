@@ -13,11 +13,8 @@
 // System Constants and Includes
 //*****************************************************************************
 
-#define BUF_SIZE 10
-#define SAMPLE_RATE_HZ 40
-#define MAX_STR_LEN 16
-#define UART_USB_BASE           UART0_BASE
-#define SYSTICK_RATE_HZ    100
+#define SAMPLE_RATE_HZ   40
+#define SYSTICK_RATE_HZ  100
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -34,15 +31,11 @@
 #include "buttons4.h"
 #include "circBufT.h"
 
-
 static uint32_t g_ulSampCnt;    // Counter for the interrupts
 
-
 //*****************************************************************************
-//
-// The interrupt handler for the for SysTick interrupt.
-//
-//*****************************************************************************
+// initClock: The interrupt handler for the for SysTick interrupt.
+// Taken from Week4Lab ADCDemo1
 void
 SysTickIntHandler(void)
 {
@@ -54,6 +47,10 @@ SysTickIntHandler(void)
     updateButtons();
 }
 
+//*****************************************************************************
+//  initSysTick: Initialises system ticks for the system clock
+//  and sets SysTickIntHandler to handle interrupts from the clock
+//  Taken from Week4Lab ADCDemo1
 void
 initSysTick (void)
 {
@@ -70,11 +67,9 @@ initSysTick (void)
     SysTickEnable ();
 }
 
-
-
 //*****************************************************************************
-// Initialisation functions for the clock (incl. SysTick), ADC, display
-//*****************************************************************************
+// initClock: Initialisation functions for the clock (incl. SysTick), ADC, display
+// Taken from Week4Lab ADCDemo1
 void
 initClock (void)
 {

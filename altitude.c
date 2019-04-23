@@ -1,6 +1,6 @@
 //*****************************************************************************
 //
-// Milestone 1 - Displaying helicopter altitude as a percentage
+// Altitude - File containing ADC and altitude calculations
 //
 // Author:  N. James
 //          L. Trenberth
@@ -9,26 +9,20 @@
 //
 //*****************************************************************************
 
-#include "system.h"
-
-//*****************************************************************************
-// Altitude Constants
-//*****************************************************************************
 #define RANGE_ALTITUDE 800*4095/3300
+#define BUF_SIZE 10
 
-//*****************************************************************************
-// Altitude Global variables
-//*****************************************************************************
+#include "circBufT.h"
+#include "system.h"
+#include "driverlib/adc.h"
 
-static uint32_t min_Altitude;
+static uint32_t refAltitude;       //Reference Altitude
 static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample values)
 
 //*****************************************************************************
-//
-// The handler for the ADC conversion complete interrupt.
-// Writes to the circular buffer.
-//
-//*****************************************************************************
+//  ADCIntHandler: The handler for the ADC conversion complete interrupt.
+//  Writes to the circular buffer.
+//  Taken from Week4Lab ADCDemo1.c
 void
 ADCIntHandler(void)
 {
@@ -46,6 +40,9 @@ ADCIntHandler(void)
     ADCIntClear(ADC0_BASE, 3);
 }
 
+//*****************************************************************************
+//  initADC: Configures and enables the ADC
+//  Taken from Week4Lab ADCDemo1.c
 void
 initADC (void)
 {
@@ -83,6 +80,11 @@ initADC (void)
     ADCIntEnable(ADC0_BASE, 3);
 }
 
+
+//*****************************************************************************
+//  computeAltitude: Calculates the average altitude from the ADC.
+//  Taken from Week4Lab ADCDemo1.c main function
+//  RETURNS: The calculated ADC altitude value as a int32_t
 int32_t
 computeAltitude (void)
 {
@@ -99,20 +101,30 @@ computeAltitude (void)
 }
 
 
+//*****************************************************************************
+//  resetAltitude: Resets the refAltitude to be current ADC altitude.
 void
 resetAltitude (void)
 {
-    min_Altitude = computeAltitude();
+    refAltitude = computeAltitude();
 }
 
+//*****************************************************************************
+//  percentAltitude: Converts the ADC Altitude into a usable percentage altitude
+//  using a 0.8V difference as the maximum height
+//  RETURNS: A Height Percentage as a int32_t from the reference height.
 int32_t
 percentAltitude(void)
 {
     int32_t percent = 0;
-    percent = 100*(min_Altitude-computeAltitude());
+    percent = 100*(refAltitude-computeAltitude());
     return percent/RANGE_ALTITUDE;
 }
 
+//*****************************************************************************
+//  percentAltitude: Converts the ADC Altitude into a usable percentage altitude
+//  using a 0.8V difference as the maximum height
+//  RETURNS: The location of the circular buffer used in ADC Calculation for initCircBuf
 circBuf_t*
 bufferLocation(void)
 {
