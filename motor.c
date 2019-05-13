@@ -36,6 +36,9 @@
 
 // PWM configuration
 #define PWM_START_RATE_HZ  300
+#define PWM_RATE_STEP_HZ   50
+#define PWM_RATE_MIN_HZ    50
+#define PWM_RATE_MAX_HZ    400
 #define PWM_DUTY_MAX       95
 #define PWM_DUTY_MIN       5
 #define PWM_DUTY_RATE_STEP 5

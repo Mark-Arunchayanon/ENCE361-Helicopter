@@ -14,6 +14,7 @@
 #include "altitude.h"
 #include "display.h"
 #include "yaw.h"
+#include "motor.h"
 
 
 //*****************************************************************************
@@ -36,6 +37,7 @@ void initAll (void) {
     initSysTick ();
     initDisplay ();
     initCircBuf (bufferLocation(), BUF_SIZE);
+    initmotor();
     IntMasterEnable(); // Enable interrupts to the processor.
     SysCtlDelay (SysCtlClockGet() / 12);
     resetAltitude();
@@ -46,7 +48,8 @@ int main(void)
 	initAll();
 	while (1)
 	{
-        OutputToDisplay();
+        updatePWM();
+	    OutputToDisplay();
 	}
 }
 
