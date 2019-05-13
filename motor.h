@@ -12,16 +12,16 @@
 #include <stdbool.h>
 
 void
-initialisePWM (void);
+initialiseMainPWM (void);
 
 void
-setPWM (uint32_t ui32Freq, uint32_t ui32Duty);
+setMainPWM (uint32_t ui32MainDuty);
 
 void
-setPWM2 (uint32_t ui32Freq2, uint32_t ui32Duty2);
+setTailPWM (uint32_t ui32TailDuty);
 
 void
-initialisePWM2 (void);
+initialiseTailPWM (void);
 
 void
 initmotor(void);

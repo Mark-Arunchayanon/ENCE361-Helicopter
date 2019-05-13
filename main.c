@@ -15,6 +15,7 @@
 #include "display.h"
 #include "yaw.h"
 #include "motor.h"
+#include "control.h"
 
 
 //*****************************************************************************
@@ -48,7 +49,6 @@ int main(void)
 	initAll();
 	while (1)
 	{
-        updatePWM();
 	    OutputToDisplay();
 	}
 }
