@@ -31,24 +31,17 @@
 /**********************************************************
  * Constants
  **********************************************************/
-// Systick configuration
-#define SYSTICK_RATE_HZ    500
-
 // PWM configuration
 #define PWM_START_RATE_HZ  300
-#define PWM_RATE_STEP_HZ   50
-#define PWM_RATE_MIN_HZ    50
-#define PWM_RATE_MAX_HZ    400
 #define PWM_DUTY_MAX       95
 #define PWM_DUTY_MIN       5
-#define PWM_DUTY_RATE_STEP 5
 #define PWM_START_DUTY     50
 #define PWM_DIVIDER_CODE   SYSCTL_PWMDIV_4
 #define PWM_DIVIDER        4
 
 //Second PWM Config
-#define PWM2_RATE_HZ       200
-#define PWM2_DUTY          10
+#define PWM2_RATE_HZ            300
+#define PWM_SEC_START_DUTY      10
 
 //  PWM Hardware Details M0PWM7 (gen 3)
 //  ---Main Rotor PWM: PC5, J4-05
@@ -83,11 +76,11 @@ void setPWM (uint32_t u32Freq, uint32_t u32Duty);
 void initialisePWM2 (void);
 void setPWM2 (uint32_t u32Freq2, uint32_t u32Duty2);
 
+
+
 static uint32_t ui32Freq = PWM_START_RATE_HZ;
 static uint32_t ui32Duty = PWM_START_DUTY;
-static uint32_t ui32Freq2 = PWM_START_RATE_HZ;
-static uint32_t ui32Duty2 = PWM2_DUTY;
-
+static uint32_t ui32DutySec = PWM_SEC_START_DUTY;
 
 
 /*********************************************************
@@ -161,7 +154,7 @@ initialisePWM2 (void)
     PWMGenConfigure(PWM_SEC_BASE, PWM_SEC_GEN,
                     PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC);
     // Set the initial PWM parameters
-    setPWM2 (PWM2_RATE_HZ, PWM2_DUTY);
+    setPWM2 (PWM2_RATE_HZ, ui32DutySec);
 
     PWMGenEnable(PWM_SEC_BASE, PWM_SEC_GEN);
 
@@ -186,27 +179,48 @@ initmotor(void)
 }
 
 void
-updatePWM(void)
+changeMainMotor(int change)
 {
-    //Will change a lot
-    if ((checkButton (UP) == PUSHED) && (ui32Freq < PWM_RATE_MAX_HZ))
-    {
-        ui32Duty += PWM_DUTY_RATE_STEP;
-        setPWM (ui32Freq, ui32Duty);
-    }
-    if ((checkButton (DOWN) == PUSHED) && (ui32Freq > PWM_RATE_MIN_HZ))
-    {
-        ui32Duty -= PWM_DUTY_RATE_STEP;
-        setPWM (ui32Freq, ui32Duty);
-    }
-    if ((checkButton (LEFT) == PUSHED) && (ui32Duty > PWM_DUTY_MIN))
-    {
-        ui32Duty -= PWM_DUTY_RATE_STEP;
-        setPWM (ui32Freq, ui32Duty);
-    }
-    if ((checkButton (RIGHT) == PUSHED) && (ui32Duty < PWM_DUTY_MAX))
-    {
-        ui32Duty += PWM_DUTY_RATE_STEP;
-        setPWM (ui32Freq, ui32Duty);
-    }
+    if ((ui32Duty + change < PWM_DUTY_MAX) && (ui32Duty + change > PWM_DUTY_MIN)) {
+            ui32Duty += change;
+        } else if (ui32Duty + change < PWM_DUTY_MAX) {
+            ui32Duty = PWM_DUTY_MIN;
+        } else if (ui32Duty + change > PWM_DUTY_MIN) {
+            ui32Duty = PWM_DUTY_MAX;
+        }
+        setPWM (PWM_START_RATE_HZ, ui32Duty);
 }
+
+void
+changeSecMotor(int change)
+{
+    if ((ui32DutySec + change < PWM_DUTY_MAX) && (ui32DutySec + change > PWM_DUTY_MIN)) {
+        ui32DutySec += change;
+    } else if (ui32DutySec + change < PWM_DUTY_MAX) {
+        ui32DutySec = PWM_DUTY_MIN;
+    } else if (ui32DutySec + change > PWM_DUTY_MIN) {
+        ui32DutySec = PWM_DUTY_MAX;
+    }
+    setPWM2 (PWM2_RATE_HZ, ui32DutySec);
+}
+
+
+//void
+//updatePWM(void)
+//{
+//    //Will change a lot
+//    if ((checkButton (UP) == PUSHED) && (ui32Duty < PWM_DUTY_MAX))
+//    {
+//        ui32Duty += PWM_DUTY_RATE_STEP;
+//        ui32DutySec += PWM_DUTY_RATE_STEP;
+//        setPWM (ui32Freq, ui32Duty);
+//        setPWM2 (PWM2_RATE_HZ, ui32DutySec);
+//    }
+//    if ((checkButton (DOWN) == PUSHED) && (ui32Duty > PWM_DUTY_MIN))
+//    {
+//        ui32Duty -= PWM_DUTY_RATE_STEP;
+//        ui32DutySec -= PWM_DUTY_RATE_STEP;
+//        setPWM (ui32Freq, ui32Duty);
+//        setPWM2 (PWM2_RATE_HZ, ui32DutySec);
+//    }
+//}
