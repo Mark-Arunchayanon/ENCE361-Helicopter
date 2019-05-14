@@ -30,4 +30,7 @@ int32_t
 PIDControlAlt(void);
 
 
+void
+RefUpdate(void);
+
 #endif /* CONTROL_H_ */

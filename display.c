@@ -33,7 +33,7 @@ initDisplay (void)
 //  introLine: Prints the intro line on the OLED Display
 void introLine (void)
 {
-    OLEDStringDraw ("Milestone 2", 0, 0);
+    OLEDStringDraw ("Heli Project", 0, 0);
 }
 
 //*****************************************************************************

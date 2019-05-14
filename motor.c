@@ -22,6 +22,7 @@
 #include "stdlib.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
 
+
 /**********************************************************
  * Generates a single PWM signal on Tiva board pin J4-05 =
  * PC5 (M0PWM7).  This is the same PWM output as the
@@ -37,7 +38,7 @@
 #define PWM_DUTY_MIN            5
 
 #define PWM_DIVIDER_CODE        SYSCTL_PWMDIV_4
-#define PWM_DIVIDER             4
+#define PWM_DIVIDER             1
 
 //Second PWM Config
 #define PWM_SEC_START_DUTY      10
@@ -68,15 +69,14 @@
 #define PWM_SEC_GPIO_PIN        GPIO_PIN_1
 
 
-static uint32_t ui32DutyMain = PWM_RATE_HZ;
+static uint32_t ui32DutyMain = PWM_MAIN_START_DUTY;
 static uint32_t ui32DutyTail = PWM_SEC_START_DUTY;
-
 
 /********************************************************
  * Function to set the freq, duty cycle of M0PWM7
  ********************************************************/
 void
-SetMainPWM (uint32_t ui32MainDuty)
+SetMainPWM (uint32_t ui32Duty)
 {
     // Calculate the PWM period corresponding to the freq.
     uint32_t ui32Period =
@@ -84,7 +84,7 @@ SetMainPWM (uint32_t ui32MainDuty)
 
     PWMGenPeriodSet(PWM_MAIN_BASE, PWM_MAIN_GEN, ui32Period);
     PWMPulseWidthSet(PWM_MAIN_BASE, PWM_MAIN_OUTNUM,
-        ui32Period * ui32MainDuty / 100);
+        ui32Period * ui32Duty / 100);
 }
 
 
@@ -118,15 +118,15 @@ initialiseMainPWM (void)
  * Function to set the freq, duty cycle of M1PWM5
  ********************************************************/
 void
-SetTailPWM (uint32_t ui32TailDuty)
+SetTailPWM (uint32_t ui32Duty)
 {
     // Calculate the PWM period corresponding to the freq.
-    uint32_t ui32Period2 =
+    uint32_t ui32Period =
         SysCtlClockGet() / PWM_DIVIDER / PWM_RATE_HZ;
 
-    PWMGenPeriodSet(PWM_SEC_BASE, PWM_SEC_GEN, ui32Period2);
+    PWMGenPeriodSet(PWM_SEC_BASE, PWM_SEC_GEN, ui32Period);
     PWMPulseWidthSet(PWM_SEC_BASE, PWM_SEC_OUTNUM,
-        ui32Period2 * ui32TailDuty / 100);
+        ui32Period * ui32Duty / 100);
 }
 
 /*********************************************************
@@ -194,5 +194,3 @@ changeSecMotor(int change)
     }
     SetTailPWM (ui32DutyTail);
 }
-
-

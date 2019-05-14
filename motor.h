@@ -8,18 +8,29 @@
 #ifndef MOTOR_H_
 #define MOTOR_H_
 
-#include <stdint.h>
-#include <stdbool.h>
+void
+SetMainPWM (uint32_t ui32Duty);
+
+/*********************************************************
+ * initialiseMainPWM
+ * M0PWM7 (J4-05, PC5) is used for the main rotor motor
+ *********************************************************/
 
 void
 initialiseMainPWM (void);
 
-void
-setMainPWM (uint32_t ui32MainDuty);
 
+/********************************************************
+ * Function to set the freq, duty cycle of M1PWM5
+ ********************************************************/
 void
-setTailPWM (uint32_t ui32TailDuty);
+SetTailPWM (uint32_t ui32Duty);
 
+
+/*********************************************************
+ * initialiseTailPWM
+ * M1PWM5 (J3-10, PF1) is used for the secondary rotor motor
+ *********************************************************/
 void
 initialiseTailPWM (void);
 
@@ -27,7 +38,10 @@ void
 initmotor(void);
 
 void
-updatePWM(void);
+changeMainMotor(int change);
+
+void
+changeSecMotor(int change);
 
 
 #endif /* MOTOR_H_ */
