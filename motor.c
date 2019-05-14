@@ -196,22 +196,3 @@ changeSecMotor(int change)
 }
 
 
-//void
-//updatePWM(void)
-//{
-//    //Will change a lot
-//    if ((checkButton (UP) == PUSHED) && (ui32Duty < PWM_DUTY_MAX))
-//    {
-//        ui32Duty += PWM_DUTY_RATE_STEP;
-//        ui32DutySec += PWM_DUTY_RATE_STEP;
-//        setPWM (ui32Freq, ui32Duty);
-//        setPWM2 (PWM2_RATE_HZ, ui32DutySec);
-//    }
-//    if ((checkButton (DOWN) == PUSHED) && (ui32Duty > PWM_DUTY_MIN))
-//    {
-//        ui32Duty -= PWM_DUTY_RATE_STEP;
-//        ui32DutySec -= PWM_DUTY_RATE_STEP;
-//        setPWM (ui32Freq, ui32Duty);
-//        setPWM2 (PWM2_RATE_HZ, ui32DutySec);
-//    }
-//}
