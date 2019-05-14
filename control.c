@@ -76,7 +76,7 @@ void PIDControlAlt(void)
     int32_t error = AltError();
     int32_t AltControl;
 
-    AltControl = error * ALT_PROP_CONTROL();
+    AltControl = error * ALT_PROP_CONTROL;
     SetMainPWM(AltControl);
 }
 
@@ -92,7 +92,7 @@ RefUpdate(void)
     }
     if ((checkButton (DOWN) == PUSHED) && (AltRef > ALT_MIN))
     {
-        AltRef -= ALT_STEP_RATE
+        AltRef -= ALT_STEP_RATE;
     }
     if (checkButton (LEFT) == PUSHED)
     {
