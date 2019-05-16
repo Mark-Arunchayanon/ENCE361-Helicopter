@@ -17,7 +17,6 @@
 #include "motor.h"
 #include "control.h"
 
-
 //*****************************************************************************
 //
 // Main function - Declare variables, initialise functions.
@@ -46,11 +45,10 @@ void initAll (void) {
 
 int main(void)
 {
-	initAll();
+    initAll();
 	while (1)
 	{
 	    OutputToDisplay();
-	    RefUpdate();
 	}
 }
 

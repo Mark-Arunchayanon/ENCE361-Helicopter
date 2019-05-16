@@ -13,6 +13,7 @@
 #include "display.h"
 #include "yaw.h"
 #include "motor.h"
+#include "buttons4.h"
 
 #define ALT_REF_INIT        10
 #define ALT_STEP_RATE       10
@@ -117,6 +118,7 @@ RefUpdate(void)
     if ((checkButton (DOWN) == PUSHED) && (AltRef > ALT_MIN))
     {
         AltRef -= ALT_STEP_RATE;
+        YawRef -= YAW_STEP_RATE;
     }
     if (checkButton (LEFT) == PUSHED)
     {
