@@ -16,12 +16,17 @@ setAltRef(int32_t newAltRef);
 void
 setYawRef(int32_t newYawRef);
 
-
 int32_t
 AltError (void);
 
 int32_t
 YawError(void);
+
+int32_t
+GetAltRef(void);
+
+int32_t
+GetYawRef(void);
 
 int32_t
 PIDControlYaw(void);

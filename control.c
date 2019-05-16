@@ -67,6 +67,17 @@ int32_t YawError(void)
 }
 
 
+int32_t GetYawRef(void)
+{
+    return YawRef;
+}
+
+
+int32_t GetAltRef(void)
+{
+    return AltRef;
+}
+
 
 void PIDControlYaw(void)
 {
