@@ -16,7 +16,6 @@
 #include "yaw.h"
 #include "motor.h"
 #include "control.h"
-
 //*****************************************************************************
 //
 // Main function - Declare variables, initialise functions.
@@ -29,26 +28,32 @@
 //*****************************************************************************
 //  initAll: Initialises all important functions
 void initAll (void) {
+    resetmotor();
     initButtonCheck();
-    initClock ();
-    initADC ();
+    initClock();
+    initADC();
     initYaw();
-    initButtons ();
-    initSysTick ();
-    initDisplay ();
-    initCircBuf (bufferLocation(), BUF_SIZE);
+    initSysTick();
+    initButtons();
+
+    initDisplay();
+    initCircBuf(bufferLocation(), BUF_SIZE);
     initmotor();
     IntMasterEnable(); // Enable interrupts to the processor.
-    SysCtlDelay (SysCtlClockGet() / 12);
+    SysCtlDelay(SysCtlClockGet() / 12);
     resetAltitude();
 }
 
 int main(void)
 {
     initAll();
-	while (1)
+
+
+
+    while (1)
 	{
 	    OutputToDisplay();
+
 	}
 }
 

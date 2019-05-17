@@ -44,8 +44,7 @@ initButtonCheck (void);
 //  ButtonCheck: Checks if the buttons are active.
 //  Changes displayCount if UP is active
 //  Resets the Reference Altitude and Yaw if the left button is pushed.
-void
-ButtonCheck (void);
+
 
 //*****************************************************************************
 //  OutputToDisplay: Switches the display depending on the displayCount.

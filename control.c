@@ -23,12 +23,12 @@
 #define YAW_REF_INIT        0
 #define YAW_STEP_RATE       15
 
-#define ALT_PROP_CONTROL    1.5
-#define ALT_INT_CONTROL     0.2
+#define ALT_PROP_CONTROL    2.5
+#define ALT_INT_CONTROL     0.1
 #define ALT_DIF_CONTROL     0.5
-#define YAW_PROP_CONTROL    0.5
-#define YAW_INT_CONTROL     0.2
-#define YAW_DIF_CONTROL     0.9
+#define YAW_PROP_CONTROL    2
+#define YAW_INT_CONTROL     0.1
+#define YAW_DIF_CONTROL     0.3
 #define DELTA_T             0.01 // 1/SYS_TICK_RATE
 
 #define TAIL_OFFSET         30
@@ -113,14 +113,12 @@ RefUpdate(void)
     if ((checkButton (UP) == PUSHED) && (AltRef < ALT_MAX))
     {
         AltRef += ALT_STEP_RATE;
-
     }
     if ((checkButton (DOWN) == PUSHED) && (AltRef > ALT_MIN))
     {
         AltRef -= ALT_STEP_RATE;
-        YawRef -= YAW_STEP_RATE;
     }
-    if (checkButton (LEFT) == PUSHED)
+    if (checkButton (LEFT) == PUSHED )
     {
         YawRef -= YAW_STEP_RATE;
     }

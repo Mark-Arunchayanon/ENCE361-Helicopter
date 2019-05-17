@@ -35,6 +35,9 @@ void
 initialiseTailPWM (void);
 
 void
+resetmotor(void);
+
+void
 initmotor(void);
 
 void

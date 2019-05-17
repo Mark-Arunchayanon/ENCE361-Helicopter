@@ -154,13 +154,19 @@ initialiseTailPWM (void)
 }
 
 void
-initmotor(void)
+resetmotor(void)
 {
-    // As a precaution, make sure that the peripherals used are reset
     SysCtlPeripheralReset (PWM_MAIN_PERIPH_GPIO); // Used for PWM output
     SysCtlPeripheralReset (PWM_MAIN_PERIPH_PWM);  // Main Rotor PWM
     SysCtlPeripheralReset (PWM_SEC_PERIPH_GPIO); // Used for PWM output
     SysCtlPeripheralReset (PWM_SEC_PERIPH_PWM);  // Main Rotor PWM
+}
+
+void
+initmotor(void)
+{
+    // As a precaution, make sure that the peripherals used are reset
+
     initialiseMainPWM ();
     initialiseTailPWM ();
 
