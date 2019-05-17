@@ -16,6 +16,7 @@
 #include "yaw.h"
 #include "motor.h"
 #include "control.h"
+#include "states.h"
 //*****************************************************************************
 //
 // Main function - Declare variables, initialise functions.
@@ -35,6 +36,8 @@ void initAll (void) {
     initYaw();
     initSysTick();
     initButtons();
+    initSwitch();
+    initStates();
 
     initDisplay();
     initCircBuf(bufferLocation(), BUF_SIZE);
@@ -53,7 +56,7 @@ int main(void)
     while (1)
 	{
 	    OutputToDisplay();
-
+	    checkSwitch();
 	}
 }
 
