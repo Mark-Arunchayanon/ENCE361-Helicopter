@@ -8,19 +8,19 @@
 // Last modified:   23.4.2019
 //*****************************************************************************
 
-#define NUM_SLOTS               112
-#define NUM_REFERENCE_POINTS    NUM_SLOTS * 4
+#define NUM_SLOTS               448
 #define TOTAL_ANGLE             360
 #include "system.h"
 #include "driverlib/gpio.h"
 #include "inc/tm4c123gh6pm.h"
 
-volatile int32_t slot;
-volatile int32_t phaseB;
-volatile int32_t phaseA;
 
-enum quad {A = 0, B = 1, C=2, D=3};
-int32_t State;
+enum quad {A = 0, B = 1, C=3, D=2};
+//int32_t State;
+//int32_t nextState;
+enum quad State;
+enum quad nextState;
+int32_t slot;
 // *******************************************************
 // getYaw: Uses the current slot number on the disk to
 // return an angle in degrees from the original reference point.
@@ -28,15 +28,14 @@ int32_t State;
 int32_t getYaw(void) {
     int32_t angle = 0;
     int32_t refnum = slot;
-    //Slot number adjusted between -61 and 61.
-    while (refnum > NUM_REFERENCE_POINTS / 2) {
-        refnum -= NUM_REFERENCE_POINTS;
+    while (refnum > NUM_SLOTS / 2) {
+        refnum -= NUM_SLOTS;
     }
-    while (refnum < -NUM_REFERENCE_POINTS / 2) {
-        refnum += NUM_REFERENCE_POINTS;
+    while (refnum < -NUM_SLOTS / 2) {
+        refnum += NUM_SLOTS;
     }
 //  Slots converted into an angle and returned as an angle.
-    angle = TOTAL_ANGLE * refnum / NUM_REFERENCE_POINTS;
+    angle = TOTAL_ANGLE * refnum / NUM_SLOTS;
     return angle;
 }
 
@@ -51,8 +50,11 @@ void resetYaw (void) {
 //  Measures PhaseB. If PhaseB generated the interrupt, add 1 to slot.
 //  If PhaseA generated the interrupt, minus 1 from slot.
 void YawIntHandler (void) {
-    int32_t nextState;
-    nextState = GPIOPinRead(GPIO_PORTB_BASE, GPIO_PIN_0| GPIO_PIN_1);
+    //Tell the registers to clear the interrupt bits
+    GPIOIntClear(GPIO_PORTB_BASE, GPIO_INT_PIN_0 | GPIO_INT_PIN_1);
+
+    //Do the state stuff
+    nextState = (enum quad)GPIOPinRead(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
     switch(State)
     {
     case A:
@@ -61,7 +63,7 @@ void YawIntHandler (void) {
             case B:
                 slot--;
                 break;
-            case C:
+            case D:
                 slot++;
                 break;
         }
@@ -69,23 +71,24 @@ void YawIntHandler (void) {
     case B:
         switch (nextState)
         {
+        case C:
+            slot--;
+            break;
         case A:
             slot++;
-            break;
-        case D:
-            slot--;
             break;
         }
         break;
     case C:
     {
-
         switch(nextState)
         {
-        case A:
-            slot--;
         case D:
+            slot--;
+            break;
+        case B:
             slot++;
+            break;
         }
         break;
     }
@@ -93,15 +96,17 @@ void YawIntHandler (void) {
     {
         switch(nextState)
         {
-        case B:
-            slot++;
-        case D:
+        case A:
             slot--;
+            break;
+        case C:
+            slot++;
+            break;
         }
         break;
     }
     }
-    GPIOIntClear(GPIO_PORTB_BASE, GPIO_INT_PIN_0 | GPIO_INT_PIN_1);
+    State = nextState;
 }
 
 // *******************************************************
@@ -112,10 +117,14 @@ void YawIntHandler (void) {
 void initYaw (void) {
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
     GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-    GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_0|GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-    IntEnable(INT_GPIOB);
-    GPIOIntEnable(GPIO_PORTB_BASE, GPIO_BOTH_EDGES);
+    GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_0|GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
+
+    GPIOIntTypeSet(GPIO_PORTB_BASE, GPIO_PIN_0|GPIO_PIN_1, GPIO_BOTH_EDGES);
+
+    GPIOIntEnable(GPIO_PORTB_BASE, GPIO_INT_PIN_0 | GPIO_INT_PIN_1);
+
     GPIOIntRegister(GPIO_PORTB_BASE, YawIntHandler);
+    IntEnable(INT_GPIOB);
 }
 
 
