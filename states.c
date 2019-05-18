@@ -19,18 +19,26 @@
 #include "driverlib/interrupt.h"
 #include "buttons4.h"
 
+
 #include "inc/hw_ints.h"
 #include "utils/ustdlib.h"
 #include "stdlib.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
 
+
+#include "control.h"
+#include "motor.h"
+#include "yaw.c"
+
 #define SWITCH_ON 128;
+#define FIND_REF 15; //value for finding the reference point
+#define INIT_ALT 40;
 
 typedef enum {Initialising, Flying, Landing, Landed} mode_type;
 
 int32_t previous_sw;
 int32_t current_sw;
-int switch_off = 0;
+bool switch_off = false;
 
 // Set up switch 1
 void
@@ -42,19 +50,39 @@ initSwitch(void)
            GPIO_PIN_TYPE_STD_WPD);
 }
 
+//
 void
 initStates(void)
 {
-    mode_type mode = Initialising;
+    int32_t ref, currentYaw;
+    mode_type mode = Landed;
+    bool refFound = false;
+
     previous_sw = GPIOPinRead (GPIO_PORTA_BASE, GPIO_PIN_7);
 
     if (previous_sw == SWITCH_ON) {
-        switch_off = 1;
+        switch_off = true;
     }
+    //start to make the helicopter spin in a circle until the initial zero point is reached
+    //when the zero point is reached set the yaw reference
+    changeMainMotor(FIND_REF);
+    while(!refFound) {
+        currentYaw = getYaw()
+        if(currentYaw == 0){
+            setYawRef(currentYaw);
+            refFound = true;
+        }
+    }
+    //check to see where the motor is at and execute the PID fucntion
+    //to return to the reference
+    PIDControlYaw();
+    //set the Altitude Reference and let the PID Control to get it up to intial altitude
+    setAltRef(INIT_ALT);
+    PIDControlAlt();
 
 }
 
-
+//
 void
 checkSwitch(void)
 {

@@ -79,12 +79,10 @@ void
 SetMainPWM (uint32_t ui32Duty)
 {
     // Calculate the PWM period corresponding to the freq.
-    uint32_t ui32Period =
-        SysCtlClockGet() / PWM_DIVIDER / PWM_RATE_HZ;
+    uint32_t ui32Period = SysCtlClockGet() / PWM_DIVIDER / PWM_RATE_HZ;
 
     PWMGenPeriodSet(PWM_MAIN_BASE, PWM_MAIN_GEN, ui32Period);
-    PWMPulseWidthSet(PWM_MAIN_BASE, PWM_MAIN_OUTNUM,
-        ui32Period * ui32Duty / 100);
+    PWMPulseWidthSet(PWM_MAIN_BASE, PWM_MAIN_OUTNUM, ui32Period * ui32Duty / 100);
 }
 
 
@@ -174,7 +172,7 @@ initmotor(void)
     PWMOutputState(PWM_MAIN_BASE, PWM_MAIN_OUTBIT, true);
     PWMOutputState(PWM_SEC_BASE, PWM_SEC_OUTBIT, true);
 }
-
+//
 void
 changeMainMotor(int change)
 {
