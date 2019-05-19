@@ -54,14 +54,20 @@ static int32_t AltPreviousError = 0;
 static int32_t YawIntError = 0;
 static int32_t YawPreviousError = 0;
 
+int32_t Alt_error, YawDerivError;
+uint32_t YawControl;
+
+int32_t Yaw_error = 0;
+int32_t AltControl;
 
 uint32_t PC4Read = 0;
-bool stable = false, paralysed = false;
+uint32_t switchState = 0;
+bool stable = false, paralysed = true, ref_Found = false;
 
-typedef enum {TakeOff, Flying, Landing, Landed, Initialising} mode_type;
+typedef enum {Landed, Initialising, TakeOff, Flying, Landing,} mode_type;
 //landed, orientation
 
-mode_type mode;
+mode_type mode = Landed;
 
 
 
@@ -85,30 +91,26 @@ initSwitch_PC4(void)
     GPIODirModeSet(GPIO_PORTA_BASE, GPIO_PIN_6, GPIO_DIR_MODE_IN);
 }
 
-void
-updateReset(void)
-{
-    uint32_t reset = GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_6);
-    GPIOIntClear(GPIO_PORTA_BASE, GPIO_PIN_6);
-    if(reset == 0) {
-        SysCtlReset();
-    }
-}
+//void
+//updateReset(void)
+//{
+//    uint32_t reset = GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_6);
+//    GPIOIntClear(GPIO_PORTA_BASE, GPIO_PIN_6);
+//    if(reset == 0) {
+//        SysCtlReset();
+//    }
+//}
 
-bool GetSwitchState(void)
+void
+GetSwitchState(void)
 {
-    uint32_t switchState = GPIOPinRead (GPIO_PORTA_BASE, GPIO_PIN_7) / 128;
+    switchState = GPIOPinRead (GPIO_PORTA_BASE, GPIO_PIN_7) / 128;
     GPIOIntClear(GPIO_PORTA_BASE, GPIO_PIN_7);
 
-    if(mode == Landed && switchState == 1 && paralysed == true) {
+    if((mode == Landed) && (switchState == 0) && paralysed) {
         paralysed = false;
     }
 
-    if(switchState > 0) {
-        return true;
-    } else {
-        return false;
-    }
 }
 
 
@@ -139,12 +141,12 @@ void take_Off(void)
 {
     setAltRef(50);
     setYawRef(0);
-
+//    SetMainPWM(60);
+//    SetTailPWM(50);
 }
 
-bool findYawRef(void)
+void findYawRef(void)
 {
-    bool ref_Found = false;
     SetMainPWM(25);
     SetTailPWM(35);
 
@@ -154,9 +156,7 @@ bool findYawRef(void)
         ref_Found = true;
         //reset the yaw as we have found the origin and set the reference
         resetYaw();
-        setYawRef(0);
     }
-    return ref_Found;
 }
 
 
@@ -167,19 +167,19 @@ void landing(void)
 }
 
 
-//computes the altitude error by taking the reference and subtracting the current altitude
-//returns the error once the calculation has been made
-int32_t AltError (void)
-{
-    return AltRef - percentAltitude();
-}
-
-//computes the yaw error by taking the reference and subtracting the current angle
-//returns the error once the calculation has been made
-int32_t YawError(void)
-{
-    return  YawRef - getYaw();
-}
+////computes the altitude error by taking the reference and subtracting the current altitude
+////returns the error once the calculation has been made
+//int32_t AltError (void)
+//{
+//    return AltRef - percentAltitude();
+//}
+//
+////computes the yaw error by taking the reference and subtracting the current angle
+////returns the error once the calculation has been made
+//int32_t YawError(void)
+//{
+//    return  YawRef - getYaw();
+//}
 
 //returns the current reference for the yaw
 int32_t GetYawRef(void)
@@ -196,34 +196,33 @@ int32_t GetAltRef(void)
 
 void PIDControlYaw(void)
 {
-    if( mode == TakeOff || mode == Flying || mode == Landing) {
-        int32_t error, YawDerivError;
-        uint32_t YawControl;
+    if( (mode == TakeOff) || (mode == Flying) || (mode == Landing)) {
 
-        error = YawError();
 
-        YawIntError += error * DELTA_T;
-        YawDerivError  = error-YawPreviousError;
+        Yaw_error = YawRef - getYaw();
 
-        YawControl = error * YAW_PROP_CONTROL + YawIntError * YAW_INT_CONTROL + YawDerivError * YAW_DIF_CONTROL;
+        YawIntError += Yaw_error * DELTA_T;
+        YawDerivError  = Yaw_error-YawPreviousError;
+
+        YawControl = Yaw_error * YAW_PROP_CONTROL + YawIntError * YAW_INT_CONTROL + YawDerivError * YAW_DIF_CONTROL;
         SetTailPWM(YawControl + TAIL_OFFSET);
-        YawPreviousError = error;
+        YawPreviousError = Yaw_error;
     }
 }
 
 //Controls the
 void PIDControlAlt(void)
 {
-    if( mode == TakeOff || mode == Flying || mode == Landing) {
-        int32_t error = AltError();
-        int32_t AltControl;
+    if( (mode == TakeOff) || (mode == Flying) || (mode == Landing)) {
+        Alt_error = AltRef - percentAltitude();
 
-        AltIntError += error * DELTA_T;
-        int32_t AltDerivError = error-AltPreviousError;
 
-        AltControl = error * ALT_PROP_CONTROL + AltIntError * ALT_INT_CONTROL + AltDerivError * ALT_DIF_CONTROL;
+        AltIntError += Alt_error * DELTA_T;
+        int32_t AltDerivError = Alt_error-AltPreviousError;
+
+        AltControl = Alt_error * ALT_PROP_CONTROL + AltIntError * ALT_INT_CONTROL + AltDerivError * ALT_DIF_CONTROL;
         SetMainPWM(AltControl + MAIN_OFFSET);
-        AltPreviousError = error;
+        AltPreviousError = Alt_error;
     }
 }
 
@@ -231,8 +230,10 @@ void PIDControlAlt(void)
 void
 resetIntControl(void)
 {
+    Alt_error = 0;
     AltIntError = 0;
     AltPreviousError = 0;
+    Yaw_error = 0;
     YawIntError = 0;
     YawPreviousError = 0;
 }
@@ -257,23 +258,19 @@ RefUpdate(void)
         {
             YawRef += YAW_STEP_RATE;
         }
-        PIDControlAlt();
-        PIDControlYaw();
+
     }
 }
 
 
 void helicopterStates(void){
-    bool switchUp;
 
     switch(mode) {
     case Landed:
-       switchUp = GetSwitchState();
-        if (switchUp == true && !paralysed) {
+        if (switchState == 1 && !paralysed) {
             //Once all the motors are off can set the state to being Initialising
             mode = Initialising;
             resetIntControl();
-            paralysed = true;
         }
         break;
 
@@ -281,7 +278,8 @@ void helicopterStates(void){
 
         //wait here until button is slid up
 //        bool foundRef = findYawRef();
-        if(findYawRef() == true) {
+        findYawRef();
+        if(ref_Found) {
             mode = TakeOff;
         }
         break;
@@ -297,9 +295,8 @@ void helicopterStates(void){
 
     case Flying:
         RefUpdate();
-        switchUp = GetSwitchState();
         //if the switch is flicked down then begin the landing process
-        if(!switchUp) {
+        if(switchState == 0) {
             mode = Landing;
         }
         break;
@@ -309,7 +306,6 @@ void helicopterStates(void){
         //once it is back to the bottom then proceed to Landed where all the motors will turn off
         if(percentAltitude() < 3) {
             mode = Landed;
-            paralysed = false;
         }
         break;
     }

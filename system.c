@@ -40,13 +40,16 @@ static uint32_t g_ulSampCnt;    // Counter for the interrupts
 void
 SysTickIntHandler(void)
 {
+    GetSwitchState();
+    PIDControlAlt();
+    PIDControlYaw();
     //
     // Initiate a conversion
     //
     ADCProcessorTrigger(ADC0_BASE, 3);
     g_ulSampCnt++;
     updateButtons();
-    updateReset();
+//    updateReset();
 }
 
 //*****************************************************************************

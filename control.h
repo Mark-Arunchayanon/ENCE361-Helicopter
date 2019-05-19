@@ -18,8 +18,8 @@ helicopterStates(void);
 void
 initSwitch_PC4(void);
 
-void
-updateReset(void);
+//void
+//updateReset(void);
 
 bool
 GetSwitchState(void);
@@ -45,14 +45,14 @@ void setAltRef(int32_t newAltRef);
 void setYawRef(int32_t newYawRef);
 
 
-//computes the altitude error by taking the reference and subtracting the current altitude
-//returns the error once the calculation has been made
-int32_t AltError (void);
-
-
-//computes the yaw error by taking the reference and subtracting the current angle
-//returns the error once the calculation has been made
-int32_t YawError(void);
+////computes the altitude error by taking the reference and subtracting the current altitude
+////returns the error once the calculation has been made
+//int32_t AltError (void);
+//
+//
+////computes the yaw error by taking the reference and subtracting the current angle
+////returns the error once the calculation has been made
+//int32_t YawError(void);
 
 
 //returns the current reference for the yaw
