@@ -35,45 +35,52 @@
 #define MAIN_OFFSET         60
 
 
+//sets the intial value of the Altitude and
 static int32_t AltRef =  ALT_REF_INIT;
 static int32_t YawRef = YAW_REF_INIT;
+
+
 static int32_t AltIntError = 0;
 static int32_t AltPreviousError = 0;
 static int32_t YawIntError = 0;
 static int32_t YawPreviousError = 0;
 
 
+
+//sets the altitude reference, takes parameter of the new altitude reference
 void setAltRef(int32_t newAltRef)
 {
     AltRef = newAltRef;
 }
 
-
-
+//sets the yaw reference, takes a parameter of the new yaw reference
 void setYawRef(int32_t newYawRef)
 {
     YawRef = newYawRef;
 }
 
 
-
+//computes the altitude error by taking the reference and subtracting the current altitude
+//returns the error once the calculation has been made
 int32_t AltError (void)
 {
     return AltRef - percentAltitude();
 }
 
+//computes the yaw error by taking the reference and subtracting the current angle
+//returns the error once the calculation has been made
 int32_t YawError(void)
 {
     return  YawRef - getYaw();
 }
 
-
+//returns the current reference for the yaw
 int32_t GetYawRef(void)
 {
     return YawRef;
 }
 
-
+//returns the current reference for the altitude
 int32_t GetAltRef(void)
 {
     return AltRef;
@@ -82,17 +89,19 @@ int32_t GetAltRef(void)
 
 void PIDControlYaw(void)
 {
-    int32_t error = YawError();
+    int32_t error, YawDerivError;
+    error = YawError();
     uint32_t YawControl;
 
     YawIntError += error * DELTA_T;
-    int32_t YawDerivError = error-YawPreviousError;
+    YawDerivError  = error-YawPreviousError;
 
     YawControl = error * YAW_PROP_CONTROL + YawIntError * YAW_INT_CONTROL + YawDerivError * YAW_DIF_CONTROL;
     SetTailPWM(YawControl + TAIL_OFFSET);
     YawPreviousError = error;
 }
 
+//Controls the
 void PIDControlAlt(void)
 {
     int32_t error = AltError();

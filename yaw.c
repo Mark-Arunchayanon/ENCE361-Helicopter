@@ -10,8 +10,15 @@
 
 #define NUM_SLOTS               448
 #define TOTAL_ANGLE             360
+#define FIND_REF_MAIN           30 //duty cycle for finding the reference point
+#define FIND_REF_TAIL           20
+
 #include "system.h"
 #include "driverlib/gpio.h"
+#include "control.h"
+#include "motor.h"
+
+
 #include "inc/tm4c123gh6pm.h"
 
 
@@ -44,6 +51,31 @@ int32_t getYaw(void) {
 void resetYaw (void) {
     slot = 0;
 }
+
+
+//********************************************************
+//
+
+void findYawReference(void)
+{
+    //setting up pin to read the reference
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+    GPIOPinTypeGPIOInput (GPIO_PortC_BASE, GPIO_PIN_4);
+    GPIODirModeSet(GPIO_PortC_BASE, GPIO_PIN_4, GPIO_DIR_MODE_IN);
+    //loop until the origin is found setting the main motor and secondary motors duty cycle
+    while( GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4) != LOW ) {
+        changeMainMotor(FIND_REF_MAIN);
+        changeSecMotor(FIND_REF_TAIL);
+    }
+    //reset the yaw as we have found the origin and set the reference
+    resetYaw();
+    setYawRef();
+    //let the PID control get it back to the reference
+    PIDControlYaw();
+}
+
+
+
 
 // *******************************************************
 //  YawIntHandler: Interrupt handler for the yaw interrupt.

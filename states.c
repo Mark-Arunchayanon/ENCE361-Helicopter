@@ -29,16 +29,18 @@
 #include "control.h"
 #include "motor.h"
 #include "yaw.c"
+#include "altitude.h"
 
-#define SWITCH_ON 128;
-#define FIND_REF 15; //value for finding the reference point
-#define INIT_ALT 40;
+#define SWITCH_ON       128
+#define INIT_ALTITUDE   50
 
-typedef enum {Initialising, Flying, Landing, Landed} mode_type;
 
-int32_t previous_sw;
-int32_t current_sw;
-bool switch_off = false;
+typedef enum {Initialising, Flying, Landed} mode_type;
+
+
+int32_t switchState;
+
+bool execute_flying = true;
 
 // Set up switch 1
 void
@@ -51,36 +53,77 @@ initSwitch(void)
 }
 
 //
-void
-initStates(void)
+void initStates(void)
 {
+    //definitions to be used in the function
     int32_t ref, currentYaw;
     mode_type mode = Landed;
     bool refFound = false;
+    bool firstCheck = true;
+    bool init_error = true;
 
-    previous_sw = GPIOPinRead (GPIO_PORTA_BASE, GPIO_PIN_7);
-
-    if (previous_sw == SWITCH_ON) {
-        switch_off = true;
-    }
-    //start to make the helicopter spin in a circle until the initial zero point is reached
-    //when the zero point is reached set the yaw reference
-    changeMainMotor(FIND_REF);
-    while(!refFound) {
-        currentYaw = getYaw()
-        if(currentYaw == 0){
-            setYawRef(currentYaw);
-            refFound = true;
+    //run a while loop until we are ready to start flying
+    while(!execute_flying) {
+        //read the switch and assign it to a variable
+        switchState = GPIOPinRead (GPIO_PORTA_BASE, GPIO_PIN_7);
+        // if the switch state is on, and it is the first check
+        //set to an error state else if it's not in an error state start flying
+        if (switchState == SWITCH_ON) {
+            if(firstCheck) {
+                init_error = true;
+            } else if(!init_error) {
+                execute_flying = true;
+            }
         }
+      //set the error state to being false as the switch is off
+      else {
+          init_error = false;
+      }
+      firstCheck = false;
     }
-    //check to see where the motor is at and execute the PID fucntion
-    //to return to the reference
-    PIDControlYaw();
-    //set the Altitude Reference and let the PID Control to get it up to intial altitude
-    setAltRef(INIT_ALT);
+    //find the reference position once again
+    findYawReference();
+    //
+    setAltRef(INIT_ALTITUDE);
     PIDControlAlt();
+    mode = Flying;
+}
+
+
+void flying(void)
+{
+    if(mode == Flying) {
+        RefUpdate();
+    }
+
+
 
 }
+
+
+void initLanding(void)
+{
+    int32_t alt_percent = 5;
+    //check the switch
+    //rotate back to origin
+    setYawRef(0);
+    PIDControlYaw();
+    //go to zero altitude
+    setAltRef(alt_percent);
+    PIDControlAlt();
+    //call landed to switch motors off
+    for (alt_percent = 5; alt_percent <= 1; alt_percent--)
+    {
+    //while(percentAltitude() < 1) {
+        set AltRef(alt_percent);
+        alt_percent--;
+    }
+    SetMainPWM(0);
+    SetTailPWM(0);
+    mode = Landed;
+
+}
+
 
 //
 void
@@ -88,13 +131,19 @@ checkSwitch(void)
 {
     current_sw = GPIOPinRead (GPIO_PORTA_BASE, GPIO_PIN_7);
 
-    if (current_sw != previous_sw) {
-        if (switch_off == 1) {
-            switch_off = 0;
-        } else {
-            switch_off = 1;
-        }
-        previous_sw = current_sw;
+//    if (current_sw != previous_sw) {
+//        if (switch_off == 1) {
+//            switch_off = 0;
+//        } else {
+//            switch_off = 1;
+//        }
+//        previous_sw = current_sw;
+//    }
+    if (current_sw > 0 && mode == Landed) {
+        initStates();
+    }
+    else if (current_sw == 0 && mode == Flying) {
+        initLanding();
     }
 }
 

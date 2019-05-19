@@ -65,7 +65,6 @@ void initButtonCheck (void) {
 //  3rd Screen: Blank
 void OutputToDisplay (void)
 {
-    RefUpdate();
     printString("Altitude = %4d%%", percentAltitude(), 0);
     printString("Yaw Angle = %4d", getYaw(), 1);
     printString("Alt Ref = %4d", GetAltRef(), 2);
