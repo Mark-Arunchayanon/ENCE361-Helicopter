@@ -16,7 +16,6 @@
 #include "yaw.h"
 #include "motor.h"
 #include "control.h"
-#include "states.h"
 //*****************************************************************************
 //
 // Main function - Declare variables, initialise functions.
@@ -36,8 +35,7 @@ void initAll (void) {
     initYaw();
     initSysTick();
     initButtons();
-    initSwitch();
-    initStates();
+    initSwitch_PC4();
 
     initDisplay();
     initCircBuf(bufferLocation(), BUF_SIZE);
@@ -55,10 +53,10 @@ int main(void)
 
     while (1)
 	{
-        OutputToDisplay();
-        flying();
-        checkSwitch();
+        //start running through the states of the helicopter
+        helicopterStates();
 
+        OutputToDisplay();
 	}
 }
 

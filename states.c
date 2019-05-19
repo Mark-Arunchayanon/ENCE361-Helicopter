@@ -35,7 +35,7 @@
 #define INIT_ALTITUDE   10
 
 
-typedef enum {Initialising, Flying, Landed} mode_type;
+
 
 
 int32_t switchState;

@@ -53,39 +53,6 @@ void resetYaw (void) {
 }
 
 
-//********************************************************
-//
-
-void findYawReference(void)
-{
-    //setting up pin to read the reference
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
-    GPIOPinTypeGPIOInput (GPIO_PORTC_BASE, GPIO_PIN_4);
-    GPIODirModeSet(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_DIR_MODE_IN);
-    //loop until the origin is found setting the main motor and secondary motors duty cycle
-    while( GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4) != 0 ) {
-        //SetMainPWM(FIND_REF_MAIN);
-        SetTailPWM(FIND_REF_TAIL);
-    }
-    //reset the yaw as we have found the origin and set the reference
-    resetYaw();
-    setYawRef(0);
-    //let the PID control get it back to the reference
-    PIDControlYaw();
-}
-
-void returntoReference(void)
-{
-    int flag = 0;
-    setYawRef(0);
-    while (flag == 0) {
-        PIDControlYaw();
-        if (getYaw() > 355 && getYaw() < 5) {
-            flag = 1;
-        }
-    }
-    flag = 0;
-}
 
 
 // *******************************************************

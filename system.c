@@ -30,6 +30,7 @@
 #include "utils/ustdlib.h"
 #include "buttons4.h"
 #include "circBufT.h"
+#include "control.h"
 
 static uint32_t g_ulSampCnt;    // Counter for the interrupts
 
@@ -45,6 +46,7 @@ SysTickIntHandler(void)
     ADCProcessorTrigger(ADC0_BASE, 3);
     g_ulSampCnt++;
     updateButtons();
+    updateReset();
 }
 
 //*****************************************************************************

@@ -11,31 +11,72 @@
 #include <stdint.h>
 
 void
-setAltRef(int32_t newAltRef);
+helicopterStates(void);
+
+
+// Set up switch 1
+void
+initSwitch_PC4(void);
 
 void
-setYawRef(int32_t newYawRef);
+updateReset(void);
 
-int32_t
-AltError (void);
+bool
+GetSwitchState(void);
 
-int32_t
-YawError(void);
+bool
+findYawRef(void);
 
+void
+take_Off(void);
+
+
+void
+landing(void);
+
+
+void
+checkStability(void);
+
+//sets the altitude reference, takes parameter of the new altitude reference
+void setAltRef(int32_t newAltRef);
+
+//sets the yaw reference, takes a parameter of the new yaw reference
+void setYawRef(int32_t newYawRef);
+
+
+//computes the altitude error by taking the reference and subtracting the current altitude
+//returns the error once the calculation has been made
+int32_t AltError (void);
+
+
+//computes the yaw error by taking the reference and subtracting the current angle
+//returns the error once the calculation has been made
+int32_t YawError(void);
+
+
+//returns the current reference for the yaw
+int32_t GetYawRef(void);
+
+//returns the current reference for the altitude
 int32_t
 GetAltRef(void);
 
-int32_t
-GetYawRef(void);
 
-int32_t
+void
 PIDControlYaw(void);
 
-int32_t
-PIDControlAlt(void);
+
+//Controls the
+void PIDControlAlt(void);
+
+
+void
+resetIntControl(void);
 
 
 void
 RefUpdate(void);
+
 
 #endif /* CONTROL_H_ */
