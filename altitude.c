@@ -19,6 +19,8 @@
 static uint32_t refAltitude;       //Reference Altitude
 static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample values)
 
+int i = 0;
+
 //*****************************************************************************
 //  ADCIntHandler: The handler for the ADC conversion complete interrupt.
 //  Writes to the circular buffer.
@@ -89,7 +91,7 @@ int32_t
 computeAltitude (void)
 {
     int AltSum = 0;
-    int i = 0;
+
 
     for (i = 0; i < BUF_SIZE; i++) {
             AltSum = AltSum + readCircBuf (&g_inBuffer);

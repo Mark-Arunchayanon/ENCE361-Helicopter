@@ -32,12 +32,12 @@
 #define YAW_REF_INIT        0
 #define YAW_STEP_RATE       15
 
-#define ALT_PROP_CONTROL    2
+#define ALT_PROP_CONTROL    0.8
 #define ALT_INT_CONTROL     0.1
-#define ALT_DIF_CONTROL     0.8
-#define YAW_PROP_CONTROL    1
+#define ALT_DIF_CONTROL     0.2
+#define YAW_PROP_CONTROL    1.4
 #define YAW_INT_CONTROL     0.1
-#define YAW_DIF_CONTROL     0.5
+#define YAW_DIF_CONTROL     0.3
 #define DELTA_T             0.01 // 1/SYS_TICK_RATE
 
 #define TAIL_OFFSET         30
@@ -54,10 +54,10 @@ static int32_t AltPreviousError = 0;
 static int32_t YawIntError = 0;
 static int32_t YawPreviousError = 0;
 
-int32_t Alt_error, YawDerivError;
+int32_t Yaw_error, YawDerivError;
 uint32_t YawControl;
 
-int32_t Yaw_error = 0;
+int32_t Alt_error = 0, AltDerivError;
 int32_t AltControl;
 
 uint32_t PC4Read = 0;
@@ -118,7 +118,7 @@ GetSwitchState(void)
 void
 checkStability(void)
 {
-    if(percentAltitude() >= 45) {
+    if(percentAltitude() >= 5) {
         stable = true;
     }
 }
@@ -148,11 +148,11 @@ void take_Off(void)
 void findYawRef(void)
 {
     SetMainPWM(25);
-    SetTailPWM(35);
+    SetTailPWM(40);
 
     PC4Read = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4);
     GPIOIntClear(GPIO_PORTC_BASE, GPIO_PIN_4);
-    if(PC4Read < 15) {
+    if(PC4Read < 16) {
         ref_Found = true;
         //reset the yaw as we have found the origin and set the reference
         resetYaw();
@@ -163,7 +163,7 @@ void findYawRef(void)
 void landing(void)
 {
     setYawRef(0);
-    SetMainPWM(35);
+    SetMainPWM(10);
 }
 
 
@@ -204,8 +204,11 @@ void PIDControlYaw(void)
         YawIntError += Yaw_error * DELTA_T;
         YawDerivError  = Yaw_error-YawPreviousError;
 
-        YawControl = Yaw_error * YAW_PROP_CONTROL + YawIntError * YAW_INT_CONTROL + YawDerivError * YAW_DIF_CONTROL;
-        SetTailPWM(YawControl + TAIL_OFFSET);
+        YawControl = Yaw_error * YAW_PROP_CONTROL
+                    + YawIntError * YAW_INT_CONTROL
+                    + YawDerivError * YAW_DIF_CONTROL
+                    + TAIL_OFFSET;
+        SetTailPWM(YawControl);
         YawPreviousError = Yaw_error;
     }
 }
@@ -213,15 +216,18 @@ void PIDControlYaw(void)
 //Controls the
 void PIDControlAlt(void)
 {
-    if( (mode == TakeOff) || (mode == Flying) || (mode == Landing)) {
+    if ((mode == TakeOff) || (mode == Flying) || (mode == Landing)) {
         Alt_error = AltRef - percentAltitude();
 
 
         AltIntError += Alt_error * DELTA_T;
-        int32_t AltDerivError = Alt_error-AltPreviousError;
+        AltDerivError = (Alt_error-AltPreviousError) * 100;
 
-        AltControl = Alt_error * ALT_PROP_CONTROL + AltIntError * ALT_INT_CONTROL + AltDerivError * ALT_DIF_CONTROL;
-        SetMainPWM(AltControl + MAIN_OFFSET);
+        AltControl = Alt_error * ALT_PROP_CONTROL
+                    + AltIntError * ALT_INT_CONTROL
+                    + AltDerivError * ALT_DIF_CONTROL
+                    + MAIN_OFFSET;
+        SetMainPWM(AltControl);
         AltPreviousError = Alt_error;
     }
 }
@@ -288,6 +294,7 @@ void helicopterStates(void){
 
         //once the reference point is met and the correct altitude is reached set the state to flying
         take_Off();
+        checkStability();
         if(stable) {
             mode = Flying;
         }
@@ -304,7 +311,9 @@ void helicopterStates(void){
     case Landing:
         landing();
         //once it is back to the bottom then proceed to Landed where all the motors will turn off
-        if(percentAltitude() < 3) {
+        if(percentAltitude() < 6) {
+            SetMainPWM(0);
+            SetTailPWM(0);
             mode = Landed;
         }
         break;
