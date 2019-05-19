@@ -11,7 +11,7 @@
 #define NUM_SLOTS               448
 #define TOTAL_ANGLE             360
 #define FIND_REF_MAIN           30 //duty cycle for finding the reference point
-#define FIND_REF_TAIL           20
+#define FIND_REF_TAIL           40
 
 #include "system.h"
 #include "driverlib/gpio.h"
@@ -64,8 +64,8 @@ void findYawReference(void)
     GPIODirModeSet(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_DIR_MODE_IN);
     //loop until the origin is found setting the main motor and secondary motors duty cycle
     while( GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4) != 0 ) {
-        changeMainMotor(FIND_REF_MAIN);
-        changeSecMotor(FIND_REF_TAIL);
+        //SetMainPWM(FIND_REF_MAIN);
+        SetTailPWM(FIND_REF_TAIL);
     }
     //reset the yaw as we have found the origin and set the reference
     resetYaw();
@@ -74,7 +74,18 @@ void findYawReference(void)
     PIDControlYaw();
 }
 
-
+void returntoReference(void)
+{
+    int flag = 0;
+    setYawRef(0);
+    while (flag == 0) {
+        PIDControlYaw();
+        if (getYaw() > 355 && getYaw() < 5) {
+            flag = 1;
+        }
+    }
+    flag = 0;
+}
 
 
 // *******************************************************

@@ -12,6 +12,9 @@
 void
 initSwitch(void);
 
+uint32_t
+GetSwitchState(void);
+
 void
 initStates(void);
 

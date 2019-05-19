@@ -26,6 +26,13 @@ getYaw (void);
 void
 resetYaw (void);
 
+
+void
+findYawReference(void);
+
+void returntoReference(void);
+
+
 // *******************************************************
 //  YawIntHandler: Interrupt handler for the yaw interrupt.
 //  Measures PhaseB. If PhaseB generated the interrupt, add 1 to slot.
@@ -41,8 +48,5 @@ YawIntHandler (void);
 void
 initYaw(void);
 
-
-void
-findYawReference(void);
 
 #endif /* YAW_H_*/

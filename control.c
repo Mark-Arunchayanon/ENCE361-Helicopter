@@ -23,12 +23,12 @@
 #define YAW_REF_INIT        0
 #define YAW_STEP_RATE       15
 
-#define ALT_PROP_CONTROL    2.5
+#define ALT_PROP_CONTROL    2
 #define ALT_INT_CONTROL     0.1
-#define ALT_DIF_CONTROL     0.5
-#define YAW_PROP_CONTROL    2
+#define ALT_DIF_CONTROL     0.8
+#define YAW_PROP_CONTROL    1
 #define YAW_INT_CONTROL     0.1
-#define YAW_DIF_CONTROL     0.3
+#define YAW_DIF_CONTROL     0.5
 #define DELTA_T             0.01 // 1/SYS_TICK_RATE
 
 #define TAIL_OFFSET         30

@@ -41,8 +41,8 @@
 #define PWM_DIVIDER             1
 
 //Second PWM Config
-#define PWM_SEC_START_DUTY      10
-#define PWM_MAIN_START_DUTY     50
+#define PWM_SEC_START_DUTY      0 //10
+#define PWM_MAIN_START_DUTY     0 //50
 
 //  PWM Hardware Details M0PWM7 (gen 3)
 //  ---Main Rotor PWM: PC5, J4-05
