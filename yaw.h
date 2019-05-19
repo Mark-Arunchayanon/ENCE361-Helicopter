@@ -42,4 +42,7 @@ void
 initYaw(void);
 
 
+void
+findYawReference(void);
+
 #endif /* YAW_H_*/

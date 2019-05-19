@@ -90,8 +90,9 @@ int32_t GetAltRef(void)
 void PIDControlYaw(void)
 {
     int32_t error, YawDerivError;
-    error = YawError();
     uint32_t YawControl;
+
+    error = YawError();
 
     YawIntError += error * DELTA_T;
     YawDerivError  = error-YawPreviousError;

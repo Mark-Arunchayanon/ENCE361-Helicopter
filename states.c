@@ -28,7 +28,7 @@
 
 #include "control.h"
 #include "motor.h"
-#include "yaw.c"
+#include "yaw.h"
 #include "altitude.h"
 
 #define SWITCH_ON       128
@@ -39,7 +39,7 @@ typedef enum {Initialising, Flying, Landed} mode_type;
 
 
 int32_t switchState;
-
+mode_type mode;
 bool execute_flying = true;
 
 // Set up switch 1
@@ -56,9 +56,7 @@ initSwitch(void)
 void initStates(void)
 {
     //definitions to be used in the function
-    int32_t ref, currentYaw;
-    mode_type mode = Landed;
-    bool refFound = false;
+    mode = Landed;
     bool firstCheck = true;
     bool init_error = true;
 
@@ -96,8 +94,6 @@ void flying(void)
         RefUpdate();
     }
 
-
-
 }
 
 
@@ -115,7 +111,7 @@ void initLanding(void)
     for (alt_percent = 5; alt_percent <= 1; alt_percent--)
     {
     //while(percentAltitude() < 1) {
-        set AltRef(alt_percent);
+        setAltRef(alt_percent);
         alt_percent--;
     }
     SetMainPWM(0);
@@ -129,7 +125,7 @@ void initLanding(void)
 void
 checkSwitch(void)
 {
-    current_sw = GPIOPinRead (GPIO_PORTA_BASE, GPIO_PIN_7);
+    int32_t current_sw = GPIOPinRead (GPIO_PORTA_BASE, GPIO_PIN_7);
 
 //    if (current_sw != previous_sw) {
 //        if (switch_off == 1) {

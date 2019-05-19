@@ -55,8 +55,9 @@ int main(void)
 
     while (1)
 	{
-	    OutputToDisplay();
-	    checkSwitch();
+	    flying();
+        checkSwitch();
+        OutputToDisplay();
 	}
 }
 
