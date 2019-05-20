@@ -35,9 +35,9 @@
 #define ALT_PROP_CONTROL    0.8
 #define ALT_INT_CONTROL     0.1
 #define ALT_DIF_CONTROL     0.2
-#define YAW_PROP_CONTROL    1.4
+#define YAW_PROP_CONTROL    1.0
 #define YAW_INT_CONTROL     0.1
-#define YAW_DIF_CONTROL     0.3
+#define YAW_DIF_CONTROL     0.5
 #define DELTA_T             0.01 // 1/SYS_TICK_RATE
 
 #define TAIL_OFFSET         30
@@ -311,7 +311,10 @@ void helicopterStates(void){
     case Landing:
         landing();
         //once it is back to the bottom then proceed to Landed where all the motors will turn off
-        if(percentAltitude() < 6) {
+        if(percentAltitude() < 15) {
+            SetMainPWM(10);
+            SetTailPWM(10);
+        } else if (percentAltitude() < 8) {
             SetMainPWM(0);
             SetTailPWM(0);
             mode = Landed;

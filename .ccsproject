@@ -14,4 +14,5 @@
 	<templateProperties value="id=com.ti.common.project.core.emptyProjectTemplate,"/>
 	<filesToOpen value=""/>
 	<isTargetManual value="false"/>
+	<origin value="P:/git/tue_am_group-3"/>
 </projectOptions>
