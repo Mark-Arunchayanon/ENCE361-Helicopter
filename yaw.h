@@ -18,7 +18,7 @@
 // getYaw: Uses the current slot number on the disk to
 // return an angle in degrees from the original reference point.
 // RETURNS a angle value between -180 < Yaw < 180 degrees.
-int32_t
+uint32_t
 getYaw (void);
 
 // *******************************************************

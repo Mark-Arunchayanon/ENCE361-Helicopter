@@ -17,6 +17,8 @@
 #include "OrbitOLED/lib_OrbitOled/OrbitOled.h"
 #include "altitude.h"
 
+#define MAX_STR_LEN 100
+
 //*****************************************************************************
 //  initDisplay: Initialises Display using OrbitLED functions
 void
@@ -33,7 +35,7 @@ introLine (void);
 //  INTPUTS: line_contents - The integer to print on the line
 //  INTPUTS: line_number - The line number integer to print the string on.
 void
-printString(char line_format, int32_t line_contents, uint8_t line_number);
+printString(char* restrict line_format, int32_t line_contents, uint8_t line_number);
 
 //*****************************************************************************
 //  initButtonCheck: Initialises left and up buttons on the micro-controller
