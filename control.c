@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
 #include "driverlib/pin_map.h" //Needed for pin configure
@@ -24,7 +25,7 @@
 #include "motor.h"
 #include "buttons4.h"
 
-#define ALT_REF_INIT        10
+#define ALT_REF_INIT        0
 #define ALT_STEP_RATE       10
 #define ALT_MAX             100
 #define ALT_MIN             0
@@ -35,7 +36,7 @@
 #define ALT_PROP_CONTROL    0.8
 #define ALT_INT_CONTROL     0.1
 #define ALT_DIF_CONTROL     0.2
-#define YAW_PROP_CONTROL    1.4
+#define YAW_PROP_CONTROL    1.0
 #define YAW_INT_CONTROL     0.1
 #define YAW_DIF_CONTROL     0.3
 #define DELTA_T             0.01 // 1/SYS_TICK_RATE
@@ -60,6 +61,7 @@ uint32_t YawControl;
 int32_t Alt_error = 0, AltDerivError;
 int32_t AltControl;
 
+uint32_t mainDuty = 0, tailDuty = 0;
 uint32_t PC4Read = 0;
 uint32_t switchState = 0;
 bool stable = false, paralysed = true, ref_Found = false;
@@ -89,6 +91,23 @@ initSwitch_PC4(void)
     //Initialise reset button
     GPIOPinTypeGPIOInput (GPIO_PORTA_BASE, GPIO_PIN_6);
     GPIODirModeSet(GPIO_PORTA_BASE, GPIO_PIN_6, GPIO_DIR_MODE_IN);
+
+
+    SysCtlPeripheralEnable(PWM_MAIN_PERIPH_PWM);
+    //SysCtlPeripheralEnable(PWM_MAIN_PERIPH_GPIO);
+
+    GPIOPinConfigure(PWM_MAIN_GPIO_CONFIG);
+    GPIOPinTypePWM(PWM_MAIN_GPIO_BASE, PWM_MAIN_GPIO_PIN);
+
+    PWMGenConfigure(PWM_MAIN_BASE, PWM_MAIN_GEN,
+                    PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC);
+    // Set the initial PWM parameters
+    SetMainPWM (PWM_MAIN_START_DUTY);
+
+    PWMGenEnable(PWM_MAIN_BASE, PWM_MAIN_GEN);
+
+    // Disable the output.  Repeat this call with 'true' to turn O/P on.
+    PWMOutputState(PWM_MAIN_BASE, PWM_MAIN_OUTBIT, false);
 }
 
 //void
@@ -148,7 +167,7 @@ void take_Off(void)
 void findYawRef(void)
 {
     SetMainPWM(25);
-    SetTailPWM(40);
+    SetTailPWM(30);
 
     PC4Read = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4);
     GPIOIntClear(GPIO_PORTC_BASE, GPIO_PIN_4);
@@ -163,7 +182,7 @@ void findYawRef(void)
 void landing(void)
 {
     setYawRef(0);
-    SetMainPWM(10);
+    SetMainPWM(15);
 }
 
 
@@ -210,6 +229,7 @@ void PIDControlYaw(void)
                     + TAIL_OFFSET;
         SetTailPWM(YawControl);
         YawPreviousError = Yaw_error;
+        tailDuty = YawControl;
     }
 }
 
@@ -229,9 +249,33 @@ void PIDControlAlt(void)
                     + MAIN_OFFSET;
         SetMainPWM(AltControl);
         AltPreviousError = Alt_error;
+        mainDuty = AltControl;
     }
 }
 
+uint32_t getMainDuty(void)
+{
+    return mainDuty;
+}
+
+uint32_t getTailDuty(void)
+{
+    return tailDuty;
+}
+
+char* getMode(void)
+{
+    switch(mode)
+    {
+    case Landed: return "Landed";
+    case Initialising: return "Initialising";
+    case TakeOff:  return "TakeOff";
+    case Flying: return"Flying";
+    case Landing: return "Landing";
+    }
+
+   return NULL;
+}
 
 void
 resetIntControl(void)

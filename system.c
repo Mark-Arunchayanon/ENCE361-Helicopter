@@ -31,8 +31,14 @@
 #include "buttons4.h"
 #include "circBufT.h"
 #include "control.h"
+#include "uart.h"
+#include "display.h"
+#include "yaw.h"
 
 static uint32_t g_ulSampCnt;    // Counter for the interrupts
+volatile uint8_t slowTick = false;
+const uint8_t ticksPerSlow = 50; // to get 500ms
+static uint8_t tickCount = 0;
 
 //*****************************************************************************
 // initClock: The interrupt handler for the for SysTick interrupt.
@@ -49,7 +55,21 @@ SysTickIntHandler(void)
     ADCProcessorTrigger(ADC0_BASE, 3);
     g_ulSampCnt++;
     updateButtons();
-//    updateReset();
+
+
+
+
+    updateButtons ();       // Poll the buttons
+    if (++tickCount >= ticksPerSlow)
+    {                       // Signal a slow tick
+        tickCount = 0;
+        slowTick = true;
+    }
+
+
+
+
+    //    updateReset();
 }
 
 //*****************************************************************************
@@ -80,7 +100,7 @@ initClock (void)
 {
     // Set the clock rate to 20 MHz
     SysCtlClockSet (SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
-                   SYSCTL_XTAL_16MHZ);
+                    SYSCTL_XTAL_16MHZ);
     //
     // Set up the period for the SysTick timer.  The SysTick timer period is
     // set as a function of the system clock.

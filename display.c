@@ -7,14 +7,16 @@
 //           M. Arunchayanon
 //     Last modified:   20.4.2019
 //*****************************************************************************
-#define MAX_STR_LEN 16
 
+
+#include "display.h"
 #include "system.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
 #include "OrbitOLED/lib_OrbitOled/OrbitOled.h"
 #include "altitude.h"
 #include "yaw.h"
 #include "control.h"
+
 
 
 int8_t button = 0;
@@ -40,7 +42,7 @@ void introLine (void)
 //  INTPUTS: line_format - The format to print the string in, including a integer placeholder
 //  INTPUTS: line_contents - The integer to print on the line
 //  INTPUTS: line_number - The line number integer to print the string on.
-void printString(char* restrict line_format, int32_t line_contents, int line_number)
+void printString(char* restrict line_format, int32_t line_contents, uint8_t line_number)
 {
     char string[MAX_STR_LEN + 1];
     usnprintf (string, sizeof(string), line_format, line_contents);

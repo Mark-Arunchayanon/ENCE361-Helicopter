@@ -32,7 +32,7 @@
 //#include "driverlib/pwm.h"
 
 static uint32_t g_ulSampCnt;    // Counter for the interrupts
-
+extern volatile uint8_t slowTick;
 //*****************************************************************************
 // initClock: The interrupt handler for the for SysTick interrupt.
 // Taken from Week4Lab ADCDemo1

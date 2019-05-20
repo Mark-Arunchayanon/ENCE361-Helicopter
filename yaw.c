@@ -22,7 +22,7 @@
 #include "inc/tm4c123gh6pm.h"
 
 
-enum quad {A = 0, B = 1, C=3, D=2};
+enum quad {A = 0, B = 1, C = 3, D = 2};
 //int32_t State;
 //int32_t nextState;
 enum quad State;

@@ -34,6 +34,8 @@ take_Off(void);
 void
 landing(void);
 
+const char*
+getMode(void);
 
 void
 checkStability(void);
@@ -43,6 +45,13 @@ void setAltRef(int32_t newAltRef);
 
 //sets the yaw reference, takes a parameter of the new yaw reference
 void setYawRef(int32_t newYawRef);
+
+uint32_t
+getMainDuty(void);
+
+
+uint32_t
+getTailDuty(void);
 
 
 ////computes the altitude error by taking the reference and subtracting the current altitude
