@@ -18,8 +18,8 @@ helicopterStates(void);
 void
 initSwitch_PC4(void);
 
-//void
-//updateReset(void);
+void
+updateReset(void);
 
 bool
 GetSwitchState(void);
@@ -41,10 +41,12 @@ void
 checkStability(void);
 
 //sets the altitude reference, takes parameter of the new altitude reference
-void setAltRef(int32_t newAltRef);
+void
+setAltRef(int32_t newAltRef);
 
 //sets the yaw reference, takes a parameter of the new yaw reference
-void setYawRef(int32_t newYawRef);
+void
+setYawRef(int32_t newYawRef);
 
 uint32_t
 getMainDuty(void);

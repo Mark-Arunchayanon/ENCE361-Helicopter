@@ -35,9 +35,9 @@
 
 #define ALT_PROP_CONTROL    0.7
 #define ALT_INT_CONTROL     0.2
-#define ALT_DIF_CONTROL     0.3
-#define YAW_PROP_CONTROL    0.9
-#define YAW_INT_CONTROL     0.3
+#define ALT_DIF_CONTROL     0.2
+#define YAW_PROP_CONTROL    0.8
+#define YAW_INT_CONTROL     0.2
 #define YAW_DIF_CONTROL     0.5
 #define DELTA_T             0.01 // 1/SYS_TICK_RATE
 
@@ -111,15 +111,15 @@ initSwitch_PC4(void)
     PWMOutputState(PWM_MAIN_BASE, PWM_MAIN_OUTBIT, false);
 }
 
-//void
-//updateReset(void)
-//{
-//    uint32_t reset = GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_6);
-//    GPIOIntClear(GPIO_PORTA_BASE, GPIO_PIN_6);
-//    if(reset == 0) {
-//        SysCtlReset();
-//    }
-//}
+void
+updateReset(void)
+{
+    uint32_t reset = GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_6);
+    GPIOIntClear(GPIO_PORTA_BASE, GPIO_PIN_6);
+    if(reset == 0) {
+        SysCtlReset();
+    }
+}
 
 void
 GetSwitchState(void)
@@ -180,11 +180,32 @@ void findYawRef(void)
 }
 
 
+//returns the current reference for the altitude
+int32_t GetAltRef(void)
+{
+    return AltRef;
+}
+
+
+
+
 void landing(void)
 {
-    main_offset = 0;
-    setYawRef(0);
-    setAltRef(14);
+    uint32_t alt = AltRef;
+    if (mode == Landing) {
+
+        if (percentAltitude() >=3) {
+            setAltRef(alt - 3);
+        } else {
+            setAltRef(0);
+        }
+    }
+//    main_offset = 0;
+//    setYawRef(0);
+//    if (getYaw()  -5) && (getYaw() <5)) {
+//        setAltRef(12);
+//    }
+
 }
 
 
@@ -206,12 +227,6 @@ void landing(void)
 int32_t GetYawRef(void)
 {
     return YawRef;
-}
-
-//returns the current reference for the altitude
-int32_t GetAltRef(void)
-{
-    return AltRef;
 }
 
 
@@ -359,18 +374,23 @@ void helicopterStates(void){
         //if the switch is flicked down then begin the landing process
         if(switchState == 0) {
             mode = Landing;
+            setYawRef(0);
         }
         break;
 
     case Landing:
-        landing();
+
         //once it is back to the bottom then proceed to Landed where all the motors will turn off
-        if(percentAltitude() < 15) {
-            SetMainPWM(10);
-            SetTailPWM(10);
-        } else if (percentAltitude() < 8) {
-            SetMainPWM(0);
-            SetTailPWM(0);
+//        if(percentAltitude() < 15) {
+//            SetMainPWM(10);
+//            SetTailPWM(10);
+//        } else if (percentAltitude() < 8) {
+//            setAltRef(0);
+//            SetMainPWM(0);
+//            SetTailPWM(0);
+//            mode = Landed;
+//        }
+        if (percentAltitude() < 1) {
             mode = Landed;
         }
         break;

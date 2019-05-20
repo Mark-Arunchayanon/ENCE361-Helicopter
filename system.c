@@ -49,15 +49,13 @@ SysTickIntHandler(void)
     GetSwitchState();
     PIDControlAlt();
     PIDControlYaw();
+    landing();
     //
     // Initiate a conversion
     //
     ADCProcessorTrigger(ADC0_BASE, 3);
     g_ulSampCnt++;
     updateButtons();
-
-
-
 
     updateButtons ();       // Poll the buttons
     if (++tickCount >= ticksPerSlow)
@@ -69,7 +67,7 @@ SysTickIntHandler(void)
 
 
 
-    //    updateReset();
+        updateReset();
 }
 
 //*****************************************************************************
