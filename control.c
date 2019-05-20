@@ -33,11 +33,11 @@
 #define YAW_REF_INIT        0
 #define YAW_STEP_RATE       15
 
-#define ALT_PROP_CONTROL    0.8
-#define ALT_INT_CONTROL     0.1
+#define ALT_PROP_CONTROL    0.7
+#define ALT_INT_CONTROL     0.2
 #define ALT_DIF_CONTROL     0.2
-#define YAW_PROP_CONTROL    1.0
-#define YAW_INT_CONTROL     0.1
+#define YAW_PROP_CONTROL    0.9
+#define YAW_INT_CONTROL     0.3
 #define YAW_DIF_CONTROL     0.5
 #define DELTA_T             0.01 // 1/SYS_TICK_RATE
 
@@ -65,6 +65,7 @@ uint32_t mainDuty = 0, tailDuty = 0;
 uint32_t PC4Read = 0;
 uint32_t switchState = 0;
 bool stable = false, paralysed = true, ref_Found = false;
+uint32_t main_offset = MAIN_OFFSET;
 
 typedef enum {Landed, Initialising, TakeOff, Flying, Landing,} mode_type;
 //landed, orientation
@@ -128,6 +129,7 @@ GetSwitchState(void)
 
     if((mode == Landed) && (switchState == 0) && paralysed) {
         paralysed = false;
+
     }
 
 }
@@ -182,7 +184,8 @@ void findYawRef(void)
 void landing(void)
 {
     setYawRef(0);
-    SetMainPWM(15);
+    setAltRef(10);
+    main_offset = 0;
 }
 
 
@@ -246,7 +249,7 @@ void PIDControlAlt(void)
         AltControl = Alt_error * ALT_PROP_CONTROL
                     + AltIntError * ALT_INT_CONTROL
                     + AltDerivError * ALT_DIF_CONTROL
-                    + MAIN_OFFSET;
+                    + main_offset;
         SetMainPWM(AltControl);
         AltPreviousError = Alt_error;
         mainDuty = AltControl;
@@ -321,6 +324,7 @@ void helicopterStates(void){
             //Once all the motors are off can set the state to being Initialising
             mode = Initialising;
             resetIntControl();
+            main_offset = MAIN_OFFSET;
         }
         break;
 
