@@ -35,7 +35,7 @@
 
 #define ALT_PROP_CONTROL    0.7
 #define ALT_INT_CONTROL     0.2
-#define ALT_DIF_CONTROL     0.2
+#define ALT_DIF_CONTROL     0.3
 #define YAW_PROP_CONTROL    0.9
 #define YAW_INT_CONTROL     0.3
 #define YAW_DIF_CONTROL     0.5
@@ -135,7 +135,6 @@ GetSwitchState(void)
 }
 
 
-
 void
 checkStability(void)
 {
@@ -183,9 +182,9 @@ void findYawRef(void)
 
 void landing(void)
 {
-    setYawRef(0);
-    setAltRef(10);
     main_offset = 0;
+    setYawRef(0);
+    SetMainPWM(10);
 }
 
 
@@ -230,6 +229,10 @@ void PIDControlYaw(void)
                     + YawIntError * YAW_INT_CONTROL
                     + YawDerivError * YAW_DIF_CONTROL
                     + TAIL_OFFSET;
+
+        if (YawControl > 85) {
+            YawControl -= 25;
+        }
         SetTailPWM(YawControl);
         YawPreviousError = Yaw_error;
         tailDuty = YawControl;
@@ -250,6 +253,9 @@ void PIDControlAlt(void)
                     + AltIntError * ALT_INT_CONTROL
                     + AltDerivError * ALT_DIF_CONTROL
                     + main_offset;
+        if (AltControl > 85) {
+            AltControl -= 25;
+        }
         SetMainPWM(AltControl);
         AltPreviousError = Alt_error;
         mainDuty = AltControl;

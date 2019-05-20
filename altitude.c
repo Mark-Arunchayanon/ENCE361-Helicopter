@@ -9,7 +9,7 @@
 //
 //*****************************************************************************
 
-#define RANGE_ALTITUDE 800*4095/3300
+#define RANGE_ALTITUDE 1000*4095/3300
 #define BUF_SIZE 10
 
 #include "circBufT.h"
