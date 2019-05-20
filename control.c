@@ -184,7 +184,7 @@ void landing(void)
 {
     main_offset = 0;
     setYawRef(0);
-    SetMainPWM(10);
+    setAltRef(14);
 }
 
 
