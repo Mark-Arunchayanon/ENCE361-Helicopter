@@ -25,56 +25,64 @@
 #include "motor.h"
 #include "buttons4.h"
 
-#define ALT_REF_INIT        0
-#define ALT_STEP_RATE       10
-#define ALT_MAX             100
-#define ALT_MIN             0
+#define ALT_REF_INIT        0    //Initial altitude reference
+#define ALT_STEP_RATE       10   //Altitude step rate
+#define ALT_MAX             100  //Maximum altitude
+#define ALT_MIN             0    //Minimum altitude
 
-#define YAW_REF_INIT        0
-#define YAW_STEP_RATE       15
+#define YAW_REF_INIT        0    //Initial yaw reference
+#define YAW_STEP_RATE       15   //Yaw step rate
 
-#define ALT_PROP_CONTROL    0.7
+#define ALT_PROP_CONTROL    0.7  //Altitude PID control
 #define ALT_INT_CONTROL     0.2
 #define ALT_DIF_CONTROL     0.2
-#define YAW_PROP_CONTROL    0.4
+
+#define YAW_PROP_CONTROL    0.4  //Yaw PID control
 #define YAW_INT_CONTROL     0.1
 #define YAW_DIF_CONTROL     0.5
+
 #define DELTA_T             0.01 // 1/SYS_TICK_RATE
 
-#define TAIL_OFFSET         30
-#define MAIN_OFFSET         40
+#define TAIL_OFFSET         30   //Tail offset
+#define MAIN_OFFSET         40   //Main offset
 
 
 //sets the intial value of the Altitude and
 static int32_t AltRef =  ALT_REF_INIT;
 static int32_t YawRef = YAW_REF_INIT;
 
-
+//Sets integral error variables
 static int32_t AltIntError = 0;
 static int32_t AltPreviousError = 0;
 static int32_t YawIntError = 0;
 static int32_t YawPreviousError = 0;
 
+//Yaw error and control variables
 int32_t Yaw_error, YawDerivError;
 uint32_t YawControl;
 
+//Altitude error and control variables
 int32_t Alt_error = 0, AltDerivError;
 int32_t AltControl;
 
+//Main and tail duty cycle
 uint32_t mainDuty = 0, tailDuty = 0;
+
+//Reading from PC4 to find reference
 uint32_t PC4Read = 0;
 uint32_t switchState = 0;
 bool stable = false, paralysed = true, ref_Found = false, yaw_at0 = false;
-uint32_t main_offset = MAIN_OFFSET;
 
-typedef enum {Landed, Initialising, TakeOff, Flying, Landing,} mode_type;
-//landed, orientation
+// *******************************************************
+// Declaring modes Landed, Initialising, TakeOff, Flying and Landing
+// *******************************************************
+typedef enum {Landed, Initialising, TakeOff, Flying, Landing} mode_type;
 
-mode_type mode = Landed;
+mode_type mode = Landed;  //Initial mode is landed
 
-
-
-// Set up switch 1
+// *******************************************************
+// Initialise and set up switch, PC4
+// *******************************************************
 void
 initSwitch_PC4(void)
 {
@@ -287,7 +295,7 @@ void PIDControlAlt(void)
         AltControl = Alt_error * ALT_PROP_CONTROL
                     + AltIntError * ALT_INT_CONTROL
                     + AltDerivError * ALT_DIF_CONTROL
-                    + main_offset;
+                    + MAIN_OFFSET;
         if (AltControl > 85) {
             AltControl -= 25;
         }
@@ -365,7 +373,6 @@ void helicopterStates(void){
             //Once all the motors are off can set the state to being Initialising
             mode = Initialising;
             resetIntControl();
-            main_offset = MAIN_OFFSET;
         }
         break;
 
