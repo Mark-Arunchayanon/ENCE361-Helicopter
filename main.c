@@ -75,6 +75,7 @@ int main(void)
             UARTSend (statusStr);
             usprintf (statusStr, "Mode=%s | \r\n", getMode()); // * usprintf
             UARTSend (statusStr);
+            landing();
         }
 
         // Is it time to send a message?

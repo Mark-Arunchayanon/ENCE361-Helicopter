@@ -49,7 +49,6 @@ SysTickIntHandler(void)
     GetSwitchState();
     PIDControlAlt();
     PIDControlYaw();
-    landing();
     //
     // Initiate a conversion
     //

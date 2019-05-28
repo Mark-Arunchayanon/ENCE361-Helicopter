@@ -36,13 +36,13 @@
 #define ALT_PROP_CONTROL    0.7
 #define ALT_INT_CONTROL     0.2
 #define ALT_DIF_CONTROL     0.2
-#define YAW_PROP_CONTROL    0.8
-#define YAW_INT_CONTROL     0.2
+#define YAW_PROP_CONTROL    0.4
+#define YAW_INT_CONTROL     0.1
 #define YAW_DIF_CONTROL     0.5
 #define DELTA_T             0.01 // 1/SYS_TICK_RATE
 
 #define TAIL_OFFSET         30
-#define MAIN_OFFSET         20
+#define MAIN_OFFSET         40
 
 
 //sets the intial value of the Altitude and
@@ -64,7 +64,7 @@ int32_t AltControl;
 uint32_t mainDuty = 0, tailDuty = 0;
 uint32_t PC4Read = 0;
 uint32_t switchState = 0;
-bool stable = false, paralysed = true, ref_Found = false;
+bool stable = false, paralysed = true, ref_Found = false, yaw_at0 = false;
 uint32_t main_offset = MAIN_OFFSET;
 
 typedef enum {Landed, Initialising, TakeOff, Flying, Landing,} mode_type;
@@ -159,8 +159,11 @@ void setYawRef(int32_t newYawRef)
 
 void take_Off(void)
 {
-    setAltRef(50);
-    setYawRef(0);
+    if (getYaw() == 0) {
+        setAltRef(50);
+    }
+//    setAltRef(50);
+//    setYawRef(0);
 //    SetMainPWM(60);
 //    SetTailPWM(50);
 }
@@ -176,6 +179,7 @@ void findYawRef(void)
         ref_Found = true;
         //reset the yaw as we have found the origin and set the reference
         resetYaw();
+        setYawRef(0);
     }
 }
 
@@ -192,14 +196,30 @@ int32_t GetAltRef(void)
 void landing(void)
 {
     uint32_t alt = AltRef;
-    if (mode == Landing) {
-
-        if (percentAltitude() >=3) {
-            setAltRef(alt - 3);
-        } else {
-            setAltRef(0);
+    if (getYaw() == 0) {
+        if (mode == Landing && yaw_at0 == true) {
+            if (percentAltitude() >= 15) {
+                if (AltRef <= 0) {
+                    setAltRef(0);
+                } else {
+                    setAltRef(alt - 5);
+                }
+            } else {
+                SetMainPWM(0);
+                SetTailPWM(0);
+            }
         }
     }
+//    if (mode == Landing && yaw_at0 == true) {
+//
+//        if (percentAltitude() >= 15) {
+//            if (AltRef <>
+//            setAltRef(alt - 5);
+//        } else {
+//            SetMainPWM(0);
+//            SetTailPWM(0);
+//        }
+//    }
 //    main_offset = 0;
 //    setYawRef(0);
 //    if (getYaw()  -5) && (getYaw() <5)) {
@@ -390,8 +410,12 @@ void helicopterStates(void){
 //            SetTailPWM(0);
 //            mode = Landed;
 //        }
+        if (getYaw() == 0) {
+            yaw_at0 = true;
+        }
         if (percentAltitude() < 1) {
             mode = Landed;
+            yaw_at0 = false;
         }
         break;
     }
