@@ -1,8 +1,16 @@
- /**********************************************************
+//*****************************************************************************
+//
+// Helicopter Project - Motor.c
+//
+// Author:  N. James
+//          L. Trenberth
+//          M. Arunchayanon
+// Last modified:	26.3.2019
+//
+// Comments: Sets up the primary and secondary PWM signals for use
+//           and creates functions for 
+//*****************************************************************************
 
- This is comment so please fucking register
- 
- **********************************************************/
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -152,6 +160,9 @@ initialiseTailPWM (void)
     PWMOutputState(PWM_SEC_BASE, PWM_SEC_OUTBIT, false);
 }
 
+/********************************************************
+ Resets the Peripherals for the GPIO Pins and PWM pins
+ ********************************************************/
 void
 resetmotor(void)
 {
@@ -160,6 +171,7 @@ resetmotor(void)
     SysCtlPeripheralReset (PWM_SEC_PERIPH_GPIO); // Used for PWM output
     SysCtlPeripheralReset (PWM_SEC_PERIPH_PWM);  // Main Rotor PWM
 }
+
 
 void
 initmotor(void)
