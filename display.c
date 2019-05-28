@@ -16,13 +16,17 @@
 #include "altitude.h"
 #include "yaw.h"
 #include "control.h"
+#include "uart.h"
 
 
 
 int8_t button = 0;
+char statusStr[MAX_STR_LEN + 1];
+
 
 //*****************************************************************************
 //  initDisplay: Initialises Display using OrbitLED functions
+//*****************************************************************************
 void
 initDisplay (void)
 {
@@ -32,6 +36,7 @@ initDisplay (void)
 
 //*****************************************************************************
 //  introLine: Prints the intro line on the OLED Display
+//*****************************************************************************
 void introLine (void)
 {
     OLEDStringDraw ("Heli Project", 0, 0);
@@ -42,6 +47,7 @@ void introLine (void)
 //  INTPUTS: line_format - The format to print the string in, including a integer placeholder
 //  INTPUTS: line_contents - The integer to print on the line
 //  INTPUTS: line_number - The line number integer to print the string on.
+//*****************************************************************************
 void printString(char* restrict line_format, int32_t line_contents, uint8_t line_number)
 {
     char string[MAX_STR_LEN + 1];
@@ -53,6 +59,7 @@ void printString(char* restrict line_format, int32_t line_contents, uint8_t line
 
 //*****************************************************************************
 //  initButtonCheck: Initialises left and up buttons on the micro-controller
+//*****************************************************************************
 void initButtonCheck (void) {
     SysCtlPeripheralReset (LEFT_BUT_PERIPH);//setting up the LEFT button GPIO
     SysCtlPeripheralReset (UP_BUT_PERIPH);//setting the UP button GPIO
@@ -61,15 +68,35 @@ void initButtonCheck (void) {
 
 }
 //*****************************************************************************
-//  OutputToDisplay: Switches the display depending on the displayCount.
-//  1st Screen: Percentage Altitude and Angle
-//  2nd Screen: ADC Value and Yaw Angle
-//  3rd Screen: Blank
+//  OutputToDisplay: Displays the helicopter altitude, height and references
+//
+//*****************************************************************************
 void OutputToDisplay (void)
 {
     printString("Altitude = %4d%%", percentAltitude(), 0);
     printString("Yaw Angle = %4d", getYaw(), 1);
     printString("Alt Ref = %4d", GetAltRef(), 2);
     printString("Yaw Ref = %4d", GetYawRef(), 3);
+}
+
+
+//*****************************************************************************
+//  OutputToDisplay: Uses uart to send the yaw and altitude reference and actual values using UART communication
+//*****************************************************************************
+void OutputToUART (void)
+{
+    if (slowTick)
+    {
+        slowTick = false;
+        // Form and send a status message to the console
+        usprintf (statusStr, "YawRef=%2d Yaw=%2d | \r\n", GetYawRef(), getYaw()); // * usprintf
+        UARTSend (statusStr);
+        usprintf (statusStr, "AltRef=%2d Alt=%2d | \r\n", GetAltRef(), percentAltitude()); // * usprintf
+        UARTSend (statusStr);
+        usprintf (statusStr, "MDut=%2d TDuty=%2d | \r\n", getMainDuty(), getTailDuty()); // * usprintf
+        UARTSend (statusStr);
+        usprintf (statusStr, "Mode=%s | \r\n", getMode()); // * usprintf
+        UARTSend (statusStr);
+    }
 }
 
