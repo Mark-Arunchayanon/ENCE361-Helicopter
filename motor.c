@@ -172,7 +172,9 @@ resetmotor(void)
     SysCtlPeripheralReset (PWM_SEC_PERIPH_PWM);  // Main Rotor PWM
 }
 
-
+/********************************************************
+ Initializes the main and secondary PWM modules
+ ********************************************************/
 void
 initmotor(void)
 {
@@ -185,7 +187,11 @@ initmotor(void)
     PWMOutputState(PWM_MAIN_BASE, PWM_MAIN_OUTBIT, true);
     PWMOutputState(PWM_SEC_BASE, PWM_SEC_OUTBIT, true);
 }
-//
+
+
+/********************************************************
+ Allows the duty cycle of the Main Motor to be changed by a certain amount
+ ********************************************************/
 void
 changeMainMotor(int change)
 {
@@ -199,6 +205,9 @@ changeMainMotor(int change)
         SetMainPWM (ui32DutyMain);
 }
 
+/********************************************************
+ * Allows the duty cycle of the secondary motor to be changed
+ ********************************************************/
 void
 changeSecMotor(int change)
 {
