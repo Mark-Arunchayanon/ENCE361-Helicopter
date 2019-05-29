@@ -54,6 +54,6 @@ initButtonCheck (void);
 //  2nd Screen: ADC Value and Yaw Angle
 //  3rd Screen: Blank
 void
-OutputToDisplay (void);
+OutputToUART (void);
 
 #endif /*DISPLAY_H_*/

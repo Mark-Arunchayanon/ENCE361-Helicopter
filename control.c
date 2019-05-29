@@ -1,8 +1,13 @@
 /*
  * control.c
  *
- *  Created on: 14/05/2019
- *      Author: par116
+ * Includes PID control for the Altitude and Yaw, and 5 helicopter modes.
+ * Landed, Initialising, TakeOff, Flying and Landing
+ *
+ * Created on: 14/05/2019
+ * Author:  N. James
+ *          L. Trenberth
+ *          M. Arunchayanon
  */
 
 #include <stdint.h>
@@ -71,7 +76,7 @@ uint32_t mainDuty = 0, tailDuty = 0;
 //Reading from PC4 to find reference
 uint32_t PC4Read = 0;
 uint32_t switchState = 0;
-bool stable = false, paralysed = true, ref_Found = false, yaw_at0 = false;
+bool stable = false, paralysed = true, ref_Found = false;
 
 // *******************************************************
 // Declaring modes Landed, Initialising, TakeOff, Flying and Landing
@@ -100,25 +105,12 @@ initSwitch_PC4(void)
     //Initialise reset button
     GPIOPinTypeGPIOInput (GPIO_PORTA_BASE, GPIO_PIN_6);
     GPIODirModeSet(GPIO_PORTA_BASE, GPIO_PIN_6, GPIO_DIR_MODE_IN);
-
-
-    SysCtlPeripheralEnable(PWM_MAIN_PERIPH_PWM);
-    //SysCtlPeripheralEnable(PWM_MAIN_PERIPH_GPIO);
-
-    GPIOPinConfigure(PWM_MAIN_GPIO_CONFIG);
-    GPIOPinTypePWM(PWM_MAIN_GPIO_BASE, PWM_MAIN_GPIO_PIN);
-
-    PWMGenConfigure(PWM_MAIN_BASE, PWM_MAIN_GEN,
-                    PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC);
-    // Set the initial PWM parameters
-    SetMainPWM (PWM_MAIN_START_DUTY);
-
-    PWMGenEnable(PWM_MAIN_BASE, PWM_MAIN_GEN);
-
-    // Disable the output.  Repeat this call with 'true' to turn O/P on.
-    PWMOutputState(PWM_MAIN_BASE, PWM_MAIN_OUTBIT, false);
 }
 
+
+// *******************************************************
+// Reads the reset button, reset system if reset is pushed
+// *******************************************************
 void
 updateReset(void)
 {
@@ -129,6 +121,11 @@ updateReset(void)
     }
 }
 
+
+// *******************************************************
+// Reads the switch, if the program starts with the switch on,
+// the helicopter will be paralysed (not be able to take of)
+// *******************************************************
 void
 GetSwitchState(void)
 {
@@ -142,40 +139,51 @@ GetSwitchState(void)
 
 }
 
-
+// *******************************************************
+// Checks if the helicopter has taken off, sets stable to true
+// *******************************************************
 void
 checkStability(void)
 {
-    if(percentAltitude() >= 5) {
+    if(percentAltitude() >= 30) {
         stable = true;
     }
 }
 
-//sets the altitude reference, takes parameter of the new altitude reference
+
+// *******************************************************
+// sets the altitude reference, takes parameter of the new altitude reference
+// *******************************************************
 void setAltRef(int32_t newAltRef)
 {
     AltRef = newAltRef;
 }
 
 
-//sets the yaw reference, takes a parameter of the new yaw reference
+// *******************************************************
+// sets the yaw reference, takes a parameter of the new yaw reference
+// *******************************************************
 void setYawRef(int32_t newYawRef)
 {
     YawRef = newYawRef;
 }
 
 
+// *******************************************************
+// Take off, checks if yaw is at zero before setting altitude to 50%
+// *******************************************************
 void take_Off(void)
 {
     if (getYaw() == 0) {
         setAltRef(50);
     }
-//    setAltRef(50);
-//    setYawRef(0);
-//    SetMainPWM(60);
-//    SetTailPWM(50);
 }
 
+// *******************************************************
+// Turns on main and tail motor to spin the helicopter clockwise
+// constantly reads PC4 to check if the helicopter is at the reference
+// Once the reference is found, set reset yaw to be zero and set yaw reference to 0
+// *******************************************************
 void findYawRef(void)
 {
     SetMainPWM(25);
@@ -192,21 +200,16 @@ void findYawRef(void)
 }
 
 
-//returns the current reference for the altitude
-int32_t GetAltRef(void)
-{
-    return AltRef;
-}
-
-
-
-
+// *******************************************************
+// Once yaw is at 0 degrees, give or take 5, decrease altitude by 5% if over 10%
+// If altitude is under 10%, shut off motors
+// *******************************************************
 void landing(void)
 {
     uint32_t alt = AltRef;
-    if (getYaw() == 0) {
-        if (mode == Landing && yaw_at0 == true) {
-            if (percentAltitude() >= 15) {
+    if ((getYaw() <= 5) && (getYaw() >= -5)) {
+        if (mode == Landing) {
+            if (percentAltitude() >= 10) {
                 if (AltRef <= 0) {
                     setAltRef(0);
                 } else {
@@ -237,84 +240,84 @@ void landing(void)
 }
 
 
-////computes the altitude error by taking the reference and subtracting the current altitude
-////returns the error once the calculation has been made
-//int32_t AltError (void)
-//{
-//    return AltRef - percentAltitude();
-//}
-//
-////computes the yaw error by taking the reference and subtracting the current angle
-////returns the error once the calculation has been made
-//int32_t YawError(void)
-//{
-//    return  YawRef - getYaw();
-//}
-
-//returns the current reference for the yaw
-int32_t GetYawRef(void)
-{
-    return YawRef;
-}
-
-
+// *******************************************************
+// Yaw PID control
+// Constantly gets called, only runs during takeoff, flying and landing mode
+// *******************************************************
 void PIDControlYaw(void)
 {
     if( (mode == TakeOff) || (mode == Flying) || (mode == Landing)) {
 
+        Yaw_error = YawRef - getYaw();  // Calculates the yaw error
 
-        Yaw_error = YawRef - getYaw();
+        YawIntError += Yaw_error * DELTA_T;  //Integral error
+        YawDerivError  = Yaw_error-YawPreviousError;  //Derivative error
 
-        YawIntError += Yaw_error * DELTA_T;
-        YawDerivError  = Yaw_error-YawPreviousError;
-
-        YawControl = Yaw_error * YAW_PROP_CONTROL
+        YawControl = Yaw_error * YAW_PROP_CONTROL      //yaw control based on PID terms
                     + YawIntError * YAW_INT_CONTROL
                     + YawDerivError * YAW_DIF_CONTROL
                     + TAIL_OFFSET;
 
-        if (YawControl > 85) {
+        if (YawControl > 85) {  //Maximum is 85%
             YawControl -= 25;
         }
-        SetTailPWM(YawControl);
+        SetTailPWM(YawControl);  //Sets the tail duty cycle
         YawPreviousError = Yaw_error;
         tailDuty = YawControl;
     }
 }
 
-//Controls the
+
+// *******************************************************
+// Altitude PID control
+// Constantly gets called, only runs during takeoff, flying and landing mode
+// *******************************************************
 void PIDControlAlt(void)
 {
     if ((mode == TakeOff) || (mode == Flying) || (mode == Landing)) {
-        Alt_error = AltRef - percentAltitude();
 
+        Alt_error = AltRef - percentAltitude();  //Calculates altitude error
 
-        AltIntError += Alt_error * DELTA_T;
-        AltDerivError = (Alt_error-AltPreviousError) * 100;
+        AltIntError += Alt_error * DELTA_T;  //Integral error
+        AltDerivError = (Alt_error-AltPreviousError) * 100;  //Derivative error
 
-        AltControl = Alt_error * ALT_PROP_CONTROL
+        AltControl = Alt_error * ALT_PROP_CONTROL  //Altitude control based on the PID terms
                     + AltIntError * ALT_INT_CONTROL
                     + AltDerivError * ALT_DIF_CONTROL
                     + MAIN_OFFSET;
-        if (AltControl > 85) {
+
+        if (AltControl > 85) {  //Maximum duty cycle of 85%
             AltControl -= 25;
         }
-        SetMainPWM(AltControl);
+        SetMainPWM(AltControl);  //Sets the main duty cycle
         AltPreviousError = Alt_error;
         mainDuty = AltControl;
     }
 }
 
+
+// *******************************************************
+// Returns main duty cycle
+// *******************************************************
 uint32_t getMainDuty(void)
 {
     return mainDuty;
 }
 
+
+// *******************************************************
+// Returns tail duty cycle
+// *******************************************************
 uint32_t getTailDuty(void)
 {
     return tailDuty;
 }
 
+
+
+// *******************************************************
+// Returns main duty cycle
+// *******************************************************
 char* getMode(void)
 {
     switch(mode)
@@ -329,6 +332,10 @@ char* getMode(void)
    return NULL;
 }
 
+
+// *******************************************************
+// Reset all error and integral error to 0
+// *******************************************************
 void
 resetIntControl(void)
 {
@@ -340,6 +347,13 @@ resetIntControl(void)
     YawPreviousError = 0;
 }
 
+
+// *******************************************************
+// Only runs when the helicopter is in flying mode
+// Checks if any of the buttons have been pushed
+// UP and DOWN are used to increase/decrease altitude reference
+// LEFT and RIGHT are used to increase/decrease yaw reference
+// *******************************************************
 void
 RefUpdate(void)
 {
@@ -365,64 +379,51 @@ RefUpdate(void)
 }
 
 
+// *******************************************************
+// Switches between the 5 modes
+// *******************************************************
 void helicopterStates(void){
 
     switch(mode) {
     case Landed:
-        if (switchState == 1 && !paralysed) {
-            //Once all the motors are off can set the state to being Initialising
-            mode = Initialising;
-            resetIntControl();
+
+        if (switchState == 1 && !paralysed) {  //If switch is flicked on and the helicopter is not paralysed
+            mode = Initialising;               // Change mode to Initialising
+            resetIntControl();                 //Reset any previous error terms
         }
         break;
 
     case Initialising:
 
-        //wait here until button is slid up
-//        bool foundRef = findYawRef();
-        findYawRef();
+        findYawRef();                          //Spins clockwise until the reference point is found
         if(ref_Found) {
-            mode = TakeOff;
+            mode = TakeOff;                    //Change mode to takeoff once the reference point is found
         }
         break;
 
     case TakeOff:
 
-        //once the reference point is met and the correct altitude is reached set the state to flying
-        take_Off();
+        take_Off();                            //Set yaw to 0 and raises the helicopter up to 50% altitude
         checkStability();
         if(stable) {
-            mode = Flying;
+            mode = Flying;                     //Once the reference point is met and the correct altitude is reached set the state to flying
         }
         break;
 
     case Flying:
-        RefUpdate();
-        //if the switch is flicked down then begin the landing process
-        if(switchState == 0) {
+
+        RefUpdate();                           //Checks if for button pushes and alter references
+
+        if(switchState == 0) {                 //If the switch is flicked down then begin the landing process
             mode = Landing;
-            setYawRef(0);
+            setYawRef(0);                      //Set yaw reference to 0
         }
         break;
 
     case Landing:
 
-        //once it is back to the bottom then proceed to Landed where all the motors will turn off
-//        if(percentAltitude() < 15) {
-//            SetMainPWM(10);
-//            SetTailPWM(10);
-//        } else if (percentAltitude() < 8) {
-//            setAltRef(0);
-//            SetMainPWM(0);
-//            SetTailPWM(0);
-//            mode = Landed;
-//        }
-        if (getYaw() == 0) {
-            yaw_at0 = true;
-        }
-        if (percentAltitude() < 1) {
+        if (percentAltitude() == 0) {          //If altitude is at 0, change mode to landed
             mode = Landed;
-            yaw_at0 = false;
         }
         break;
     }

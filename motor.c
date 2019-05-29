@@ -1,8 +1,15 @@
- /**********************************************************
+//*****************************************************************************
+//
+// Motor - Sets up the primary and secondary PWM signals for use
+//           and creates functions for controls.
+//
+// Author:  N. James
+//          L. Trenberth
+//          M. Arunchayanon
+// Last modified:	26.3.2019
+//
+//*****************************************************************************
 
- This is comment so please fucking register
- 
- **********************************************************/
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -33,29 +40,29 @@
 /**********************************************************
  * Constants
  **********************************************************/
-//// PWM configuration
-//#define PWM_RATE_HZ             300
-//#define PWM_DUTY_MAX            95
-//#define PWM_DUTY_MIN            5
-//
-//#define PWM_DIVIDER_CODE        SYSCTL_PWMDIV_4
-//#define PWM_DIVIDER             1
-//
-////Second PWM Config
-//#define PWM_SEC_START_DUTY      0 //10
-//#define PWM_MAIN_START_DUTY     0 //50
-//
-////  PWM Hardware Details M0PWM7 (gen 3)
-////  ---Main Rotor PWM: PC5, J4-05
-//#define PWM_MAIN_BASE           PWM0_BASE
-//#define PWM_MAIN_GEN            PWM_GEN_3
-//#define PWM_MAIN_OUTNUM         PWM_OUT_7
-//#define PWM_MAIN_OUTBIT         PWM_OUT_7_BIT
-//#define PWM_MAIN_PERIPH_PWM     SYSCTL_PERIPH_PWM0
-//#define PWM_MAIN_PERIPH_GPIO    SYSCTL_PERIPH_GPIOC
-//#define PWM_MAIN_GPIO_BASE      GPIO_PORTC_BASE
-//#define PWM_MAIN_GPIO_CONFIG    GPIO_PC5_M0PWM7
-//#define PWM_MAIN_GPIO_PIN       GPIO_PIN_5
+// PWM configuration
+#define PWM_RATE_HZ             300
+#define PWM_DUTY_MAX            95
+#define PWM_DUTY_MIN            5
+
+#define PWM_DIVIDER_CODE        SYSCTL_PWMDIV_4
+#define PWM_DIVIDER             1
+
+//Second PWM Config
+#define PWM_SEC_START_DUTY      0 //10
+#define PWM_MAIN_START_DUTY     0 //50
+
+//  PWM Hardware Details M0PWM7 (gen 3)
+//  ---Main Rotor PWM: PC5, J4-05
+#define PWM_MAIN_BASE           PWM0_BASE
+#define PWM_MAIN_GEN            PWM_GEN_3
+#define PWM_MAIN_OUTNUM         PWM_OUT_7
+#define PWM_MAIN_OUTBIT         PWM_OUT_7_BIT
+#define PWM_MAIN_PERIPH_PWM     SYSCTL_PERIPH_PWM0
+#define PWM_MAIN_PERIPH_GPIO    SYSCTL_PERIPH_GPIOC
+#define PWM_MAIN_GPIO_BASE      GPIO_PORTC_BASE
+#define PWM_MAIN_GPIO_CONFIG    GPIO_PC5_M0PWM7
+#define PWM_MAIN_GPIO_PIN       GPIO_PIN_5
 
 
 //PWM Hardware Details M1PWM5 (gen 2)
@@ -68,10 +75,6 @@
 #define PWM_SEC_GPIO_BASE       GPIO_PORTF_BASE
 #define PWM_SEC_GPIO_CONFIG     GPIO_PF1_M1PWM5
 #define PWM_SEC_GPIO_PIN        GPIO_PIN_1
-
-
-static uint32_t ui32DutyMain = PWM_MAIN_START_DUTY;
-static uint32_t ui32DutyTail = PWM_SEC_START_DUTY;
 
 /********************************************************
  * Function to set the freq, duty cycle of M0PWM7
@@ -91,7 +94,6 @@ SetMainPWM (uint32_t ui32Duty)
  * initialiseMainPWM
  * M0PWM7 (J4-05, PC5) is used for the main rotor motor
  *********************************************************/
-
 void
 initialiseMainPWM (void)
 {
@@ -144,7 +146,7 @@ initialiseTailPWM (void)
     PWMGenConfigure(PWM_SEC_BASE, PWM_SEC_GEN,
                     PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC);
     // Set the initial PWM parameters
-    SetTailPWM (ui32DutyTail);
+    SetTailPWM (PWM_SEC_START_DUTY);
 
     PWMGenEnable(PWM_SEC_BASE, PWM_SEC_GEN);
 
@@ -152,6 +154,10 @@ initialiseTailPWM (void)
     PWMOutputState(PWM_SEC_BASE, PWM_SEC_OUTBIT, false);
 }
 
+/********************************************************
+* resetmotor
+* Resets the Peripherals for the GPIO Pins and PWM pins
+ ********************************************************/
 void
 resetmotor(void)
 {
@@ -161,6 +167,10 @@ resetmotor(void)
     SysCtlPeripheralReset (PWM_SEC_PERIPH_PWM);  // Main Rotor PWM
 }
 
+/********************************************************
+* initmotor
+* Initializes the main and secondary PWM modules
+ ********************************************************/
 void
 initmotor(void)
 {
@@ -169,33 +179,7 @@ initmotor(void)
     initialiseMainPWM ();
     initialiseTailPWM ();
 
-    // Initialisation is complete, so turn on the output.
+    // Initialization is complete, so turn on the output.
     PWMOutputState(PWM_MAIN_BASE, PWM_MAIN_OUTBIT, true);
     PWMOutputState(PWM_SEC_BASE, PWM_SEC_OUTBIT, true);
-}
-//
-void
-changeMainMotor(int change)
-{
-    if ((ui32DutyMain + change < PWM_DUTY_MAX) && (ui32DutyMain + change > PWM_DUTY_MIN)) {
-        ui32DutyMain += change;
-        } else if (ui32DutyMain + change < PWM_DUTY_MAX) {
-            ui32DutyMain = PWM_DUTY_MIN;
-        } else if (ui32DutyMain + change > PWM_DUTY_MIN) {
-            ui32DutyMain = PWM_DUTY_MAX;
-        }
-        SetMainPWM (ui32DutyMain);
-}
-
-void
-changeSecMotor(int change)
-{
-    if ((ui32DutyTail + change < PWM_DUTY_MAX) && (ui32DutyTail + change > PWM_DUTY_MIN)) {
-        ui32DutyTail += change;
-    } else if (ui32DutyTail + change < PWM_DUTY_MAX) {
-        ui32DutyTail = PWM_DUTY_MIN;
-    } else if (ui32DutyTail + change > PWM_DUTY_MIN) {
-        ui32DutyTail = PWM_DUTY_MAX;
-    }
-    SetTailPWM (ui32DutyTail);
 }
