@@ -12,39 +12,41 @@
 #define RANGE_ALTITUDE 1000*4095/3300
 #define BUF_SIZE 10
 
+
 #include "circBufT.h"
 #include "system.h"
 #include "driverlib/adc.h"
 
+
+
 static uint32_t refAltitude;       //Reference Altitude
 static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample values)
 
-int i = 0;
 
-//*****************************************************************************
+
+
+//  *****************************************************************************
 //  ADCIntHandler: The handler for the ADC conversion complete interrupt.
-//  Writes to the circular buffer.
-//  Taken from Week4Lab ADCDemo1.c
+//                 Writes to the circular buffer.
+//  Taken from:    Week4Lab ADCDemo1.c
 void
 ADCIntHandler(void)
 {
     uint32_t ulValue;
-
-    //
-    // Get the single sample from ADC0.  ADC_BASE is defined in
-    // inc/hw_memmap.h
+    // Get the single sample from ADC0.  ADC_BASE is defined in inc/hw_memmap.h
     ADCSequenceDataGet(ADC0_BASE, 3, &ulValue);
-    //
+
     // Place it in the circular buffer (advancing write index)
     writeCircBuf (&g_inBuffer, ulValue);
-    //
+
     // Clean up, clearing the interrupt
     ADCIntClear(ADC0_BASE, 3);
 }
 
-//*****************************************************************************
-//  initADC: Configures and enables the ADC
-//  Taken from Week4Lab ADCDemo1.c
+
+//  *****************************************************************************
+//  initADC:    Configures and enables the ADC
+//  Taken from: Week4Lab ADCDemo1.c
 void
 initADC (void)
 {
@@ -83,24 +85,24 @@ initADC (void)
 }
 
 
-//*****************************************************************************
+//  *****************************************************************************
 //  computeAltitude: Calculates the average altitude from the ADC.
-//  Taken from Week4Lab ADCDemo1.c main function
-//  RETURNS: The calculated ADC altitude value as a int32_t
+//  Taken from:      Week4Lab ADCDemo1.c main function
+//  RETURNS:         The calculated ADC altitude value as a int32_t
 int32_t
 computeAltitude (void)
 {
     int AltSum = 0;
-
+    int i = 0;
 
     for (i = 0; i < BUF_SIZE; i++) {
-            AltSum = AltSum + readCircBuf (&g_inBuffer);
+            AltSum = AltSum + readCircBuf (&g_inBuffer); // Adds each item in the buffer to the sum.
     }
-    return ((2 * AltSum + BUF_SIZE) / 2 / BUF_SIZE);
+    return ((2 * AltSum + BUF_SIZE) / 2 / BUF_SIZE);    //returns an overall sum.
 }
 
 
-//*****************************************************************************
+//  *****************************************************************************
 //  resetAltitude: Resets the refAltitude to be current ADC altitude.
 void
 resetAltitude (void)
@@ -108,22 +110,23 @@ resetAltitude (void)
     refAltitude = computeAltitude();
 }
 
-//*****************************************************************************
+
+//  *****************************************************************************
 //  percentAltitude: Converts the ADC Altitude into a usable percentage altitude
-//  using a 0.8V difference as the maximum height
-//  RETURNS: A Height Percentage as a int32_t from the reference height.
+//                   using a 0.8V difference as the maximum height
+//  RETURNS:         A Height Percentage as a int32_t from the reference height.
 int32_t
 percentAltitude(void)
 {
     int32_t percent = 0;
     percent = 100*(refAltitude-computeAltitude());
-    return percent/RANGE_ALTITUDE;
+    return percent/RANGE_ALTITUDE; //returns percentage of 0.8V change
 }
 
-//*****************************************************************************
-//  percentAltitude: Converts the ADC Altitude into a usable percentage altitude
-//  using a 0.8V difference as the maximum height
-//  RETURNS: The location of the circular buffer used in ADC Calculation for initCircBuf
+
+//  *****************************************************************************
+//  bufferLocation: Returns the location of the circular buffer
+//  RETURNS:        A pointer to a circbuf_t
 circBuf_t*
 bufferLocation(void)
 {
