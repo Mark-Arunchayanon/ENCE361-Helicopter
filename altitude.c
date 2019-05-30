@@ -96,9 +96,6 @@ computeAltitude (void)
     for (i = 0; i < BUF_SIZE; i++) {
             AltSum = AltSum + readCircBuf (&g_inBuffer);
     }
-    //ADC_Altitude = ((2 * AltSum + BUF_SIZE) / 2 / BUF_SIZE);   // Calculates the mean from 10 samples
-    //Change_Altitude = min_Altitude-ADC_Altitude;       // Calculate the change in height
-    //Percent_Altitude = 100*Change_Altitude/RANGE_ALTITUDE;       // Calculate the altitude percentage
     return ((2 * AltSum + BUF_SIZE) / 2 / BUF_SIZE);
 }
 
