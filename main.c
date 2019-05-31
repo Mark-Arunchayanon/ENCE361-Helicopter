@@ -5,7 +5,7 @@
 // Author:  N. James
 //          L. Trenberth
 //          M. Arunchayanon
-// Last modified:	26.3.2019
+// Last modified:	31.5.2019
 //
 //*****************************************************************************
 // Based on the 'convert' series from 2016
