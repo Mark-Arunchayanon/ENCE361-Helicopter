@@ -42,9 +42,6 @@ static uint8_t tickCount = 0;
 // SysTickIntHandler:   Counts system ticks
 // Taken from:          Week4Lab ADCDemo1
 void SysTickIntHandler(void) {
-    GetSwitchState();
-    PIDControlAlt();
-    PIDControlYaw();
     //
     // Initiate a conversion
     //

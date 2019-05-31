@@ -41,6 +41,17 @@ void initAll (void) {
 }
 
 //*****************************************************************************
+// Control:            Controls the altitude and yaw of a model helicopter
+void control (void)
+{
+    helicopterStates();
+    OutputToUART();
+    GetSwitchState();
+    PIDControlAlt();
+    PIDControlYaw();
+}
+
+//*****************************************************************************
 // Main:            Controls the altitude and yaw of a model helicopter
 int main(void)
 {
@@ -48,8 +59,8 @@ int main(void)
     while (1)
 	{
         //start running through the states of the helicopter
-        helicopterStates();
-        OutputToUART();
+        control();
+
 	}
 }
 
