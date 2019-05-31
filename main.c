@@ -19,17 +19,9 @@
 #include "uart.h"
 
 
-//*****************************************************************************
-//
-// Main function - Declare variables, initialise functions.
-//               - Constantly fills buffer and calculates mean samples and Altitude percentage
-//               - Change the display on OLED screen between displaying altitude, raw ADC value and turning screen off
-//               - Update display every 4Hz
-//
-//*****************************************************************************
 
 //*****************************************************************************
-//  initAll: Initialises all important functions
+//  initAll: Initialises all buttons, interrupts, ADC, PWM, modes and controls
 void initAll (void) {
     resetmotor();
     initButtonCheck();
@@ -39,7 +31,6 @@ void initAll (void) {
     initSysTick();
     initButtons();
     initSwitch_PC4();
-
     initDisplay();
     initialiseUSB_UART();
     initCircBuf(bufferLocation(), BUF_SIZE);
@@ -49,6 +40,8 @@ void initAll (void) {
     resetAltitude();
 }
 
+//*****************************************************************************
+// Main:            Controls the altitude and yaw of a model helicopter
 int main(void)
 {
     initAll();

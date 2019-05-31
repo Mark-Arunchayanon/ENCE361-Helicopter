@@ -1,14 +1,14 @@
-/*
- * control.c
- *
- * Includes PID control for the Altitude and Yaw, and 5 helicopter modes.
- * Landed, Initialising, TakeOff, Flying and Landing
- *
- * Created on: 14/05/2019
- * Author:  N. James
- *          L. Trenberth
- *          M. Arunchayanon
- */
+//*****************************************************************************
+//
+// control - Includes PID control for the Altitude and Yaw, and 5 helicopter modes.
+//           Landed, Initialising, TakeOff, Flying and Landing
+//
+// Author:  N. James
+//          L. Trenberth
+//          M. Arunchayanon
+// Last modified:   31.5.2019
+//
+//*****************************************************************************
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -80,15 +80,13 @@ bool stable = false, paralysed = true, ref_Found = false;
 
 // *******************************************************
 // Declaring modes Landed, Initialising, TakeOff, Flying and Landing
-// *******************************************************
 typedef enum {Landed, Initialising, TakeOff, Flying, Landing} mode_type;
-
 mode_type mode = Landed;  //Initial mode is landed
 
+
 // *******************************************************
-// initSwitch_PC4: Initialises and sets up switch on PC4
-void
-initSwitch_PC4(void)
+// initSwitch_PC4:      Initialises and sets up switch on PC4
+void initSwitch_PC4(void)
 {
     // Initialise SW1
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
@@ -108,9 +106,8 @@ initSwitch_PC4(void)
 
 
 // *******************************************************
-// updateReset: Reads the reset button, reset system if reset is pushed
-void
-updateReset(void)
+// updateReset:         Reads the reset button, reset system if reset is pushed
+void updateReset(void)
 {
     uint32_t reset = GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_6);
     GPIOIntClear(GPIO_PORTA_BASE, GPIO_PIN_6);
@@ -121,25 +118,22 @@ updateReset(void)
 
 
 // *******************************************************
-// GetSwitchState: Reads the switch, if the program starts with the switch on,
-//                 the helicopter will be paralysed (not be able to take of)
-void
-GetSwitchState(void)
+// GetSwitchState:      Reads the switch, if the program starts with the switch on,
+//                      the helicopter will be paralysed (not be able to take of)
+void GetSwitchState(void)
 {
     switchState = GPIOPinRead (GPIO_PORTA_BASE, GPIO_PIN_7) / 128;
     GPIOIntClear(GPIO_PORTA_BASE, GPIO_PIN_7);
 
     if((mode == Landed) && (switchState == 0) && paralysed) {
         paralysed = false;
-
     }
-
 }
 
+
 // *******************************************************
-// checkStability: Checks if the helicopter has taken off, sets stable to true
-void
-checkStability(void)
+// checkStability:      Checks if the helicopter has taken off, sets stable to true
+void checkStability(void)
 {
     if(percentAltitude() >= 30) {
         stable = true;
@@ -148,8 +142,8 @@ checkStability(void)
 
 
 // *******************************************************
-// setAltRef: Sets the altitude reference
-// TAKES: New altitude reference as a percentage
+// setAltRef:           Sets the altitude reference
+// TAKES:               New altitude reference as a percentage
 void setAltRef(int32_t newAltRef)
 {
     AltRef = newAltRef;
@@ -157,8 +151,8 @@ void setAltRef(int32_t newAltRef)
 
 
 // *******************************************************
-// setYawRef: Sets the yaw reference
-// TAKES: newYawRef, the new yaw reference as a percentage
+// setYawRef:           Sets the yaw reference
+// TAKES:               newYawRef, the new yaw reference as a percentage
 void setYawRef(int32_t newYawRef)
 {
     YawRef = newYawRef;
@@ -166,8 +160,26 @@ void setYawRef(int32_t newYawRef)
 
 
 // *******************************************************
-// take_Off: checks if yaw is at zero.
-//           If this is true, sets Altitude Reference to 50%
+// GetAltRef:           Returns the current reference for the altitude
+// RETURNS:             Altitude Reference as a int32_t
+int32_t GetAltRef(void)
+{
+    return AltRef;
+}
+
+
+// *******************************************************
+// GetYawRef:           Returns the current reference for the yaw
+// RETURNS:             Yaw Reference as a int32_t
+int32_t GetYawRef(void)
+{
+    return YawRef;
+}
+
+
+// *******************************************************
+// take_Off:            Checks if yaw is zero.
+//                      If this is true, sets Altitude Reference to 50%
 void take_Off(void)
 {
     if (getYaw() == 0) {
@@ -175,10 +187,11 @@ void take_Off(void)
     }
 }
 
+
 // *******************************************************
-// findYawRef: Turns on main and tail motor. Spins the helicopter clockwise
-//             and  reads PC4 to check if the helicopter is at the reference
-//             Once the reference is found, resets yaw reference to 0 and current yaw to 0
+// findYawRef:          Turns on main and tail motor. Spins the helicopter clockwise
+//                      and  reads PC4 to check if the helicopter is at the reference
+//                      Once the reference is found, resets yaw reference to 0 and current yaw to 0
 void findYawRef(void)
 {
     //Sets initial power percentages
@@ -189,8 +202,7 @@ void findYawRef(void)
     PC4Read = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4);
     GPIOIntClear(GPIO_PORTC_BASE, GPIO_PIN_4);
     if(PC4Read < 16) {
-        ref_Found = true;
-        //Origin Found
+        ref_Found = true; //Origin Found
         resetYaw(); //Reset current yaw value to 0
         setYawRef(0); // Resets yaw reference to 0
     }
@@ -198,18 +210,18 @@ void findYawRef(void)
 
 
 // *******************************************************
-// landing: Once yaw is at 0 degrees, give or take 5, decrease altitude by 5% if over 10%
-//          If altitude is under 10%, shut off motors
+// landing:             Once yaw is within 5 degrees of 0,
+//                      decrease altitude by 5% if over 10%
+//                      If altitude is under 10%, shut off motors
 void landing(void)
 {
-    uint32_t alt = AltRef;
     if ((getYaw() <= 5) && (getYaw() >= -5)) {
         if (mode == Landing) {
             if (percentAltitude() >= 10) {
                 if (AltRef <= 0) {
                     setAltRef(0);
                 } else {
-                    setAltRef(alt - 5);
+                    setAltRef(AltRef - 5);
                 }
             } else {
                 //Turns off both motors
@@ -222,8 +234,8 @@ void landing(void)
 
 
 // *******************************************************
-//  PIDControlYaw: Uses PID control during TakeOff, Flying and Landing modes
-//                 Ensures the yaw follows the yaw reference
+//  PIDControlYaw:      Uses PID control during TakeOff, Flying and Landing modes
+//                      Ensures the yaw follows the yaw reference
 void PIDControlYaw(void)
 {
     if( (mode == TakeOff) || (mode == Flying) || (mode == Landing)) {
@@ -249,8 +261,8 @@ void PIDControlYaw(void)
 
 
 // *******************************************************
-// PIDControlAlt: Uses PID control during TakeOff, Flying and Landing modes
-//                Ensures the altitude follows the altitude reference
+// PIDControlAlt:       Uses PID control during TakeOff, Flying and Landing modes
+//                      Ensures the altitude follows the altitude reference
 void PIDControlAlt(void)
 {
     if ((mode == TakeOff) || (mode == Flying) || (mode == Landing)) {
@@ -276,8 +288,8 @@ void PIDControlAlt(void)
 
 
 // *******************************************************
-// getMainDuty: Returns main rotor duty cycle
-// RETURNS:     The main duty cycle as a uint32_t
+// getMainDuty:         Returns main rotor duty cycle
+// RETURNS:             The main duty cycle as a uint32_t
 uint32_t getMainDuty(void)
 {
     return mainDuty;
@@ -285,18 +297,17 @@ uint32_t getMainDuty(void)
 
 
 // *******************************************************
-// getTailDuty: Returns tail duty cycle
-// RETURNS:     The tail rotor duty cycle as a uint32_t
+// getTailDuty:         Returns tail duty cycle
+// RETURNS:             The tail rotor duty cycle as a uint32_t
 uint32_t getTailDuty(void)
 {
     return tailDuty;
 }
 
 
-
 // *******************************************************
-// getMode: Finds the current mode of the helicopter
-// RETURNS: A char* containing the current mode
+// getMode:             Finds the current mode of the helicopter
+// RETURNS:             A char* containing the current mode
 char* getMode(void)
 {
     switch(mode)
@@ -313,9 +324,8 @@ char* getMode(void)
 
 
 // *******************************************************
-// resetIntControl: Reset all error and integral error to 0
-void
-resetIntControl(void)
+// resetIntControl:     Reset all error and integral error to 0
+void resetIntControl(void)
 {
     Alt_error = 0;
     AltIntError = 0;
@@ -327,12 +337,11 @@ resetIntControl(void)
 
 
 // *******************************************************
-// RefUpdate: Only runs when the helicopter is in flying mode
-//            Checks button status and changes reference altitudes and yaws
-//            UP and DOWN are used to increase/decrease altitude reference
-//            LEFT and RIGHT are used to increase/decrease yaw reference
-void
-RefUpdate(void)
+// RefUpdate:           Only runs when the helicopter is in flying mode
+//                      Checks button status and changes reference altitudes and yaws
+//                      UP and DOWN are used to increase/decrease altitude reference
+//                      LEFT and RIGHT are used to increase/decrease yaw reference
+void RefUpdate(void)
 {
     if(mode == Flying) {
         if ((checkButton (UP) == PUSHED) && (AltRef < ALT_MAX))
@@ -357,7 +366,7 @@ RefUpdate(void)
 
 
 // *******************************************************
-// helicopterStates: Switches mode between the 5 modes
+// helicopterStates:    Switches mode between the 5 modes
 void helicopterStates(void){
 
     switch(mode) {

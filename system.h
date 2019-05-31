@@ -33,22 +33,26 @@
 
 static uint32_t g_ulSampCnt;    // Counter for the interrupts
 extern volatile uint8_t slowTick;
+
+
 //*****************************************************************************
-// initClock: The interrupt handler for the for SysTick interrupt.
-// Taken from Week4Lab ADCDemo1
+// SysTickIntHandler:   Counts system ticks
+// Taken from:          Week4Lab ADCDemo1
 void
 SysTickIntHandler(void);
 
+
 //*****************************************************************************
-//  initSysTick: Initialises system ticks for the system clock
-//  and sets SysTickIntHandler to handle interrupts from the clock
-//  Taken from Week4Lab ADCDemo1
+//  initSysTick:        Initialises system ticks for the system clock
+//                      and sets SysTickIntHandler to handle interrupts from the clock
+//  Taken from:         Week4Lab ADCDemo1
 void
 initSysTick (void);
 
+
 //*****************************************************************************
-// initClock: Initialisation functions for the clock (incl. SysTick), ADC, display
-// Taken from Week4Lab ADCDemo1
+// initClock:           The interrupt handler for the for SysTick interrupt.
+// Taken from:          Week4Lab ADCDemo1
 void
 initClock (void);
 

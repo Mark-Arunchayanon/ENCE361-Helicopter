@@ -1,11 +1,11 @@
 //*****************************************************************************
 //
-// Yaw - Calculating yaw slot numbers and angles functions through an Interrupt
+// yaw - Calculating yaw slot numbers and angles functions through an Interrupt
 //
 // Author:  N. James
 //          L. Trenberth
 //          M. Arunchayanon
-// Last modified:   23.4.2019
+// Last modified:   31.5.2019
 //*****************************************************************************
 
 #define NUM_SLOTS               448
@@ -30,9 +30,9 @@ int32_t slot;
 
 
 // *******************************************************
-// getYaw:  Uses the current slot number on the disk to
-//          return an angle in degrees from the original reference point.
-// RETURNS: Angle value between -180 < Yaw < 180 degrees.
+// getYaw:          Uses the current slot number on the disk to
+//                  return an angle in degrees from the original reference point.
+// RETURNS:         Angle value between -180 < Yaw < 180 degrees.
 int32_t getYaw(void) {
     int32_t angle = 0;
     int32_t refnum = slot;
@@ -48,21 +48,18 @@ int32_t getYaw(void) {
 }
 
 
-
 // *******************************************************
-// resetYaw: Resets the slot number to 0
+// resetYaw:        Resets the slot number to 0
 void resetYaw (void) {
     slot = 0;
 }
 
 
-
-
 // *******************************************************
-//  YawIntHandler: Interrupt handler for the yaw interrupt.
-//                 Measures Phasse A and Phase B.
-//                 If moving clockwise, add 1 to slot
-//                 If moving anti-clockwise, minus 1 to slot
+//  YawIntHandler:  Interrupt handler for the yaw interrupt.
+//                  Measures Phasse A and Phase B.
+//                  If moving clockwise, add 1 to slot
+//                  If moving anti-clockwise, minus 1 to slot
 void YawIntHandler (void) {
     //Clear the interrupt bits
     GPIOIntClear(GPIO_PORTB_BASE, GPIO_INT_PIN_0 | GPIO_INT_PIN_1);
@@ -72,6 +69,8 @@ void YawIntHandler (void) {
     switch(State)
     {
     case A:
+        //In case A, can move to B or D.
+        //D is clockwise, B is anti-clockwise
         switch (nextState)
         {
             case B:
@@ -83,6 +82,8 @@ void YawIntHandler (void) {
         }
         break;
     case B:
+        //In case B, can move to A or C.
+        //A is clockwise, C is anti-clockwise
         switch (nextState)
         {
         case C:
@@ -95,6 +96,8 @@ void YawIntHandler (void) {
         break;
     case C:
     {
+        //In case C, can move to D or B.
+        //B is clockwise, D is anti-clockwise
         switch(nextState)
         {
         case D:
@@ -108,6 +111,8 @@ void YawIntHandler (void) {
     }
     case D:
     {
+        //In case D, can move to A or C.
+        //C is clockwise, A is anti-clockwise
         switch(nextState)
         {
         case A:
@@ -131,12 +136,12 @@ void YawIntHandler (void) {
 void initYaw (void) {
 
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-    GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+    GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1); //Sets PIN) & PIN1 as inputs
     GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_0|GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
-    GPIOIntTypeSet(GPIO_PORTB_BASE, GPIO_PIN_0|GPIO_PIN_1, GPIO_BOTH_EDGES);
-    GPIOIntEnable(GPIO_PORTB_BASE, GPIO_INT_PIN_0 | GPIO_INT_PIN_1);
-    GPIOIntRegister(GPIO_PORTB_BASE, YawIntHandler);
-    IntEnable(INT_GPIOB);
+    GPIOIntTypeSet(GPIO_PORTB_BASE, GPIO_PIN_0|GPIO_PIN_1, GPIO_BOTH_EDGES); //Trigger interrupts on both edges of wave changes on PB0 and PB1
+    GPIOIntEnable(GPIO_PORTB_BASE, GPIO_INT_PIN_0 | GPIO_INT_PIN_1); //Enable interrupts from PB0 and PB1
+    GPIOIntRegister(GPIO_PORTB_BASE, YawIntHandler); //If interrupt occurs, run YawIntHandler
+    IntEnable(INT_GPIOB); //Enable interrupts on B.
 }
 
 

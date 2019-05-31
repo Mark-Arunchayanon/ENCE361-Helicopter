@@ -1,4 +1,4 @@
-//*****************************************************************************
+//  *****************************************************************************
 //
 // System - System Related Files and includes
 //
@@ -6,13 +6,11 @@
 //          L. Trenberth
 //          M. Arunchayanon
 // Last modified:   20.4.2019
-//*****************************************************************************
+//  *****************************************************************************
 
 
-//*****************************************************************************
-// System Constants and Includes
-//*****************************************************************************
-
+//  *****************************************************************************
+//  System Constants and Includes
 #define SAMPLE_RATE_HZ   40
 #define SYSTICK_RATE_HZ  100
 
@@ -41,11 +39,9 @@ const uint8_t ticksPerSlow = 50; // to get 500ms
 static uint8_t tickCount = 0;
 
 //*****************************************************************************
-// initClock: The interrupt handler for the for SysTick interrupt.
-// Taken from Week4Lab ADCDemo1
-void
-SysTickIntHandler(void)
-{
+// SysTickIntHandler:   Counts system ticks
+// Taken from:          Week4Lab ADCDemo1
+void SysTickIntHandler(void) {
     GetSwitchState();
     PIDControlAlt();
     PIDControlYaw();
@@ -66,9 +62,9 @@ SysTickIntHandler(void)
 }
 
 //*****************************************************************************
-//  initSysTick: Initialises system ticks for the system clock
-//  and sets SysTickIntHandler to handle interrupts from the clock
-//  Taken from Week4Lab ADCDemo1
+//  initSysTick:        Initialises system ticks for the system clock
+//                      and sets SysTickIntHandler to handle interrupts from the clock
+//  Taken from:         Week4Lab ADCDemo1
 void
 initSysTick (void)
 {
@@ -86,8 +82,8 @@ initSysTick (void)
 }
 
 //*****************************************************************************
-// initClock: Initialisation functions for the clock (incl. SysTick), ADC, display
-// Taken from Week4Lab ADCDemo1
+// initClock:           Initialisation functions for the clock (incl. SysTick), ADC, display
+// Taken from:          Week4Lab ADCDemo1
 void
 initClock (void)
 {

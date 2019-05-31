@@ -45,9 +45,12 @@
 //********************************************************
 // Prototypes
 //********************************************************
-void initialiseUSB_UART (void);
-void UARTSend (char *pucBuffer);
+void
+initialiseUSB_UART (void);
 
+
+void
+UARTSend (char *pucBuffer);
 
 
 #endif /* UART_H_ */
