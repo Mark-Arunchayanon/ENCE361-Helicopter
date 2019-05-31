@@ -66,6 +66,7 @@
 
 
 //PWM Hardware Details M1PWM5 (gen 2)
+//  ---Secondary Rotor PWM: PF1, J4-05
 #define PWM_SEC_BASE            PWM1_BASE
 #define PWM_SEC_GEN             PWM_GEN_2
 #define PWM_SEC_OUTNUM          PWM_OUT_5
